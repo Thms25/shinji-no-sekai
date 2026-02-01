@@ -1,6 +1,6 @@
 "use server";
 
-import { adminAuth, adminDb } from "@/lib/firebase-admin";
+import { adminAuth, adminDb, admin } from "@/lib/firebase-admin";
 
 export async function createArtist(prevState: any, formData: FormData) {
   const name = formData.get("name") as string;
@@ -39,9 +39,10 @@ export async function createTrack(prevState: any, formData: FormData) {
     const title = formData.get("title") as string;
     const versionName = formData.get("versionName") as string;
     const artistId = formData.get("artistId") as string;
+    const url = formData.get("url") as string;
 
-    if (!title || !versionName || !artistId) {
-        return { error: "Missing fields" };
+    if (!title || !versionName || !artistId || !url) {
+        return { error: "Missing fields: title, version name, artist, or file URL." };
     }
 
     try {
@@ -57,13 +58,13 @@ export async function createTrack(prevState: any, formData: FormData) {
         // Add first version
         await trackRef.collection("versions").add({
             name: versionName,
-            url: "", // Placeholder until file upload is implemented
+            url: url, 
             createdAt: new Date().toISOString(),
         });
 
         // Update artist track count
         await adminDb.collection("users").doc(artistId).update({
-            tracksCount: adminDb.FieldValue.increment(1)
+            tracksCount: admin.firestore.FieldValue.increment(1)
         });
 
         return { success: true };

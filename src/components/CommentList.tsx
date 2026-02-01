@@ -1,8 +1,9 @@
+import { Comment } from "@/utils/type-utils";
 import { useState } from "react";
 import { X, Check, Trash } from "lucide-react";
 import { solveComment, deleteComment } from "@/actions/comment-actions";
 
-export default function CommentList({ comments, trackId, userRole }: { comments: any[], trackId: string, userRole: string }) {
+export default function CommentList({ comments, trackId, userRole }: { comments: Comment[], trackId: string, userRole: string }) {
   const [loadingId, setLoadingId] = useState<string | null>(null);
 
   const handleSolve = async (id: string, currentStatus: boolean) => {

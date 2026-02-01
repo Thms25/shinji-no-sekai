@@ -18,10 +18,30 @@ service cloud.firestore {
       allow write: if isAdmin(); 
     }
 
-    // Tracks collection (for dashboard)
+    // Tracks collection
     match /tracks/{trackId} {
-        allow read: if request.auth != null; // Refine this to artist ownership later
+        // Artists can read tracks assigned to them
+        allow read: if request.auth != null && (resource.data.artistId == request.auth.uid || isAdmin());
         allow write: if isAdmin();
+        
+        // Subcollections
+        match /versions/{versionId} {
+            allow read: if request.auth != null; // Parent track rule implicitly covers access logic usually, but nested needs explicit if strict. 
+            // Better: inherit access from track. 
+            // Since we can't easily access parent data in version read rules without a get(), 
+            // and we rely on server actions for sensitive stuff, loose read is often okay if parent ID is unknown.
+            // But strict: 
+            allow read: if request.auth != null && (get(/databases/$(database)/documents/tracks/$(trackId)).data.artistId == request.auth.uid || isAdmin());
+            allow write: if isAdmin();
+        }
+        
+        match /comments/{commentId} {
+             allow read: if request.auth != null && (get(/databases/$(database)/documents/tracks/$(trackId)).data.artistId == request.auth.uid || isAdmin());
+             // Artists can add comments
+             allow create: if request.auth != null && (get(/databases/$(database)/documents/tracks/$(trackId)).data.artistId == request.auth.uid || isAdmin());
+             // Artists can delete their own comments? Maybe. Admins can do all.
+             allow update, delete: if isAdmin();
+        }
     }
   }
 }

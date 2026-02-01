@@ -7,19 +7,20 @@ import AddVersionModal from "@/components/AddVersionModal";
 import AddCommentModal from "@/components/AddCommentModal";
 import CommentList from "@/components/CommentList";
 import { useAuth } from "@/contexts/AuthContext";
+import { Track, TrackVersion, Comment } from "@/utils/type-utils";
 
 export default function TrackPage({ 
   track, 
   versions, 
   comments 
 }: { 
-  params: Promise<{ id: string }>, // Unused in client component but kept for type compatibility if needed
-  track: any, 
-  versions: any[], 
-  comments: any[] 
+  params: Promise<{ id: string }>, 
+  track: Track, 
+  versions: TrackVersion[], 
+  comments: Comment[] 
 }) {
   const { user, role } = useAuth();
-  const [activeVersion, setActiveVersion] = useState<any>(versions.length > 0 ? versions[versions.length - 1] : null);
+  const [activeVersion, setActiveVersion] = useState<TrackVersion | null>(versions.length > 0 ? versions[versions.length - 1] : null);
   const [isVersionsOpen, setIsVersionsOpen] = useState(false);
   const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
   const [modalTimestamp, setModalTimestamp] = useState<number | null>(null);

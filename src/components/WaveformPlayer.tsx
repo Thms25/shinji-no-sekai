@@ -1,5 +1,6 @@
 "use client";
 
+import { Comment } from "@/utils/type-utils";
 import { useEffect, useRef, useState } from "react";
 import WaveSurfer from "wavesurfer.js";
 import RegionsPlugin from "wavesurfer.js/dist/plugins/regions.js";
@@ -10,7 +11,7 @@ interface WaveformPlayerProps {
   onReady?: () => void;
   onTimeUpdate?: (time: number) => void;
   onAddComment?: (time: number) => void;
-  comments?: any[]; // Array of comments with timestamps
+  comments?: Comment[];
   activeCommentId?: string | null;
 }
 
