@@ -16,7 +16,9 @@ export default function Login() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      // Force token refresh to ensure claims are up to date
+      await userCredential.user.getIdToken(true);
       router.push("/dashboard");
     } catch (err: any) {
       setError("Failed to login. Please check your credentials.");

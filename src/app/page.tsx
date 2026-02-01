@@ -1,36 +1,36 @@
-"use client";
+'use client'
 
-import { motion } from "framer-motion";
-import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { motion } from 'framer-motion'
+import Link from 'next/link'
+import { ArrowRight } from 'lucide-react'
 
 export default function Home() {
   return (
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-64px)] p-8 sm:p-20 font-sans">
       <main className="flex flex-col gap-8 row-start-2 items-center text-center max-w-3xl">
-        <motion.h1 
+        <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
+          transition={{ duration: 0.8, ease: 'easeOut' }}
           className="text-5xl sm:text-7xl font-bold tracking-tighter"
         >
           SHINJI NO SEKAI
         </motion.h1>
-        
-        <motion.p 
+
+        <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+          transition={{ duration: 0.8, delay: 0.2, ease: 'easeOut' }}
           className="text-xl text-muted-foreground"
         >
-          Audio Engineer & Sound Designer based in Tokyo. 
-          Crafting immersive sonic experiences.
+          Audio Engineer & Sound Designer based in Brussels. Crafting immersive
+          sonic experiences.
         </motion.p>
 
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
+          transition={{ duration: 0.8, delay: 0.4, ease: 'easeOut' }}
           className="flex gap-4 items-center flex-col sm:flex-row"
         >
           <Link
@@ -48,5 +48,5 @@ export default function Home() {
         </motion.div>
       </main>
     </div>
-  );
+  )
 }

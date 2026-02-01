@@ -1,0 +1,27 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper function to check if user is admin
+    function isAdmin() {
+      return request.auth != null && 
+             (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+              request.auth.token.role == 'admin');
+    }
+
+    // Users collection
+    match /users/{userId} {
+      // Users can read their own profile
+      // Admins can read all profiles
+      allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      // Only admins can write roles/create users via client (though we use server actions mostly)
+      allow write: if isAdmin(); 
+    }
+
+    // Tracks collection (for dashboard)
+    match /tracks/{trackId} {
+        allow read: if request.auth != null; // Refine this to artist ownership later
+        allow write: if isAdmin();
+    }
+  }
+}

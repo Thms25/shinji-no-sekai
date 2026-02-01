@@ -1,18 +1,33 @@
 @import "tailwindcss";
 
 :root {
-  /* Default to Dark Mode colors */
-  --background: #050505;
-  --foreground: #ededed;
-  --primary: #3b82f6; /* Blue-500 or similar accent */
-  --muted-foreground: #a1a1aa;
+  /* Color Palette Definition */
+  --color-lightest: #FAF3E1;
+  --color-light: #F5E7C6;
+  --color-accent: #FA8112;
+  --color-dark: #222222;
+
+  /* Theme Mapping */
+  --background: var(--color-dark);
+  --foreground: var(--color-lightest);
+  --primary: var(--color-accent);
+  --secondary: var(--color-light);
+  
+  /* Derived colors with opacity for utility */
+  --muted-foreground: color-mix(in srgb, var(--color-lightest) 60%, transparent);
+  --card-background: color-mix(in srgb, var(--color-light) 5%, transparent);
+  --border-color: color-mix(in srgb, var(--color-lightest) 10%, transparent);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
   --color-muted-foreground: var(--muted-foreground);
+  --color-card: var(--card-background);
+  --color-border: var(--border-color);
+  
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }

@@ -6,6 +6,8 @@ import { motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
 
+import { useAuth } from "@/contexts/AuthContext";
+
 const links = [
   { href: "/", label: "Home" },
   { href: "/work", label: "Work" },
@@ -16,12 +18,24 @@ const links = [
 export default function Navbar() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const { user, role, signOut } = useAuth();
+
+  const navLinks = [...links];
+  if (user) {
+    if (role === 'admin') {
+      navLinks.push({ href: "/admin", label: "Admin" });
+    } else {
+      navLinks.push({ href: "/dashboard", label: "Dashboard" });
+    }
+  } else {
+    navLinks.push({ href: "/login", label: "Login" });
+  }
 
   return (
     <nav className="fixed w-full z-50 bg-background/80 backdrop-blur-md border-b border-white/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <div className="flex-shrink-0">
+          <div className="shrink-0">
             <Link href="/" className="text-xl font-bold tracking-tighter hover:text-primary transition-colors">
               SHINJI NO SEKAI
             </Link>
@@ -29,7 +43,7 @@ export default function Navbar() {
           
           <div className="hidden md:block">
             <div className="ml-10 flex items-baseline space-x-8">
-              {links.map((link) => (
+              {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
@@ -48,6 +62,14 @@ export default function Navbar() {
                   )}
                 </Link>
               ))}
+              {user && (
+                 <button 
+                  onClick={() => signOut()}
+                  className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Logout
+                </button>
+              )}
             </div>
           </div>
 
@@ -71,7 +93,7 @@ export default function Navbar() {
           className="md:hidden bg-background border-b border-white/10"
         >
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-            {links.map((link) => (
+            {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
@@ -85,6 +107,14 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
+             {user && (
+                 <button 
+                  onClick={() => { signOut(); setIsOpen(false); }}
+                  className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-muted-foreground hover:bg-white/5 hover:text-foreground"
+                >
+                  Logout
+                </button>
+              )}
           </div>
         </motion.div>
       )}

@@ -2,23 +2,32 @@
 
 import { useEffect, useRef, useState } from "react";
 import WaveSurfer from "wavesurfer.js";
-import { Play, Pause, SkipBack, SkipForward } from "lucide-react";
+import RegionsPlugin from "wavesurfer.js/dist/plugins/regions.js";
+import { Play, Pause, SkipBack, SkipForward, MessageSquarePlus } from "lucide-react";
 
 interface WaveformPlayerProps {
   url: string;
   onReady?: () => void;
   onTimeUpdate?: (time: number) => void;
+  onAddComment?: (time: number) => void;
+  comments?: any[]; // Array of comments with timestamps
+  activeCommentId?: string | null;
 }
 
-export default function WaveformPlayer({ url, onReady, onTimeUpdate }: WaveformPlayerProps) {
+export default function WaveformPlayer({ url, onReady, onTimeUpdate, onAddComment, comments = [], activeCommentId }: WaveformPlayerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const wavesurfer = useRef<WaveSurfer | null>(null);
+  const regions = useRef<RegionsPlugin | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
 
   useEffect(() => {
     if (!containerRef.current) return;
+
+    // Initialize Regions Plugin
+    const wsRegions = RegionsPlugin.create();
+    regions.current = wsRegions;
 
     wavesurfer.current = WaveSurfer.create({
       container: containerRef.current,
@@ -29,6 +38,7 @@ export default function WaveformPlayer({ url, onReady, onTimeUpdate }: WaveformP
       barGap: 3,
       height: 100,
       normalize: true,
+      plugins: [wsRegions],
     });
 
     wavesurfer.current.load(url);
@@ -59,10 +69,41 @@ export default function WaveformPlayer({ url, onReady, onTimeUpdate }: WaveformP
     };
   }, [url]);
 
+  // Sync comments to regions/markers
+  useEffect(() => {
+    if (!regions.current || !wavesurfer.current) return;
+    
+    regions.current.clearRegions();
+    
+    comments.forEach(comment => {
+        if (comment.timestamp) {
+            regions.current?.addRegion({
+                start: comment.timestamp,
+                end: comment.timestamp, // Marker-like behavior
+                color: comment.solved ? "rgba(0, 255, 0, 0.5)" : "rgba(250, 129, 18, 0.8)", // Green if solved, Accent Orange if not
+                drag: false,
+                resize: false,
+                id: comment.id,
+                content: "💬", // Optional content
+            });
+        }
+    });
+
+  }, [comments, url]); // Re-run when comments change or url changes (new version)
+
   const togglePlay = () => {
     if (wavesurfer.current) {
       wavesurfer.current.playPause();
       setIsPlaying(!isPlaying);
+    }
+  };
+
+  const handleAddCommentClick = () => {
+    if (wavesurfer.current) {
+        const time = wavesurfer.current.getCurrentTime();
+        wavesurfer.current.pause();
+        setIsPlaying(false);
+        onAddComment?.(time);
     }
   };
 
@@ -91,12 +132,14 @@ export default function WaveformPlayer({ url, onReady, onTimeUpdate }: WaveformP
         </div>
 
         <div className="flex items-center gap-2">
-           <button className="p-2 text-muted-foreground hover:text-foreground transition-colors">
-            <SkipBack size={20} />
-          </button>
-          <button className="p-2 text-muted-foreground hover:text-foreground transition-colors">
-            <SkipForward size={20} />
-          </button>
+           <button 
+             onClick={handleAddCommentClick}
+             className="flex items-center gap-2 px-3 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium transition-colors text-primary"
+             title="Add comment at current time"
+           >
+             <MessageSquarePlus size={18} />
+             <span className="hidden sm:inline">Add Note</span>
+           </button>
         </div>
       </div>
     </div>
