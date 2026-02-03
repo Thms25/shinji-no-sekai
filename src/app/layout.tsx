@@ -1,43 +1,43 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import { AuthProvider } from "@/contexts/AuthContext";
+import type { Metadata } from 'next'
+import { Geist, Geist_Mono } from 'next/font/google'
+import './globals.css'
+import Navbar from '@/components/Navbar'
+import Footer from '@/components/Footer'
+import { AuthProvider } from '@/contexts/AuthContext'
 
 const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+  variable: '--font-geist-sans',
+  subsets: ['latin'],
+})
 
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+  variable: '--font-geist-mono',
+  subsets: ['latin'],
+})
 
 export const metadata: Metadata = {
-  title: "Shinji No Sekai | Audio Engineer",
-  description: "Modern audio engineering and production services.",
-};
+  title: 'Shinji No Sekai | Audio Engineer',
+  description: 'Modern audio engineering and production services.',
+}
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className="dark"> 
+    <html lang="en" className="dark">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-background text-foreground`}
       >
         <AuthProvider>
           <Navbar />
-          <main className="flex-grow pt-16">
+          <main className="grow pt-16" suppressHydrationWarning>
             {children}
           </main>
           <Footer />
         </AuthProvider>
       </body>
     </html>
-  );
+  )
 }
