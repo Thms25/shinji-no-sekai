@@ -1,7 +1,7 @@
 'use client'
 
 import { Comment } from '@/utils/type-utils'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useMemo } from 'react'
 import WaveSurfer from 'wavesurfer.js'
 import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.js'
 import { Play, Pause, MessageSquarePlus } from 'lucide-react'
@@ -11,6 +11,7 @@ interface WaveformPlayerProps {
   onReady?: () => void
   onTimeUpdate?: (time: number) => void
   onAddComment?: (time: number) => void
+  onCommentClick?: (commentId: string) => void
   comments?: Comment[]
   activeCommentId?: string | null
 }
@@ -20,15 +21,51 @@ export default function WaveformPlayer({
   onReady,
   onTimeUpdate,
   onAddComment,
+  onCommentClick,
   comments = [],
 }: WaveformPlayerProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const wavesurfer = useRef<WaveSurfer | null>(null)
   const regions = useRef<RegionsPlugin | null>(null)
+  // Keep latest callbacks without re-initializing WaveSurfer on every render
+  const onReadyRef = useRef<WaveformPlayerProps['onReady']>(onReady)
+  const onTimeUpdateRef =
+    useRef<WaveformPlayerProps['onTimeUpdate']>(onTimeUpdate)
+  const onAddCommentRef =
+    useRef<WaveformPlayerProps['onAddComment']>(onAddComment)
+  const onCommentClickRef =
+    useRef<WaveformPlayerProps['onCommentClick']>(onCommentClick)
   const [isPlaying, setIsPlaying] = useState(false)
   const [isReady, setIsReady] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
+
+  // Sort comments: non-solved first, then by timestamp (ascending)
+  const sortedComments = useMemo(() => {
+    return [...comments].sort((a, b) => {
+      // First sort by solved status (false comes before true)
+      if (a.solved !== b.solved) {
+        return a.solved ? 1 : -1
+      }
+      // Then sort by timestamp (ascending)
+      const tsA = a.timestamp ?? 0
+      const tsB = b.timestamp ?? 0
+      return tsA - tsB
+    })
+  }, [comments])
+
+  useEffect(() => {
+    onReadyRef.current = onReady
+  }, [onReady])
+  useEffect(() => {
+    onTimeUpdateRef.current = onTimeUpdate
+  }, [onTimeUpdate])
+  useEffect(() => {
+    onAddCommentRef.current = onAddComment
+  }, [onAddComment])
+  useEffect(() => {
+    onCommentClickRef.current = onCommentClick
+  }, [onCommentClick])
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -54,18 +91,18 @@ export default function WaveformPlayer({
     wavesurfer.current.on('ready', () => {
       setIsReady(true)
       setDuration(wavesurfer.current?.getDuration() || 0)
-      onReady?.()
+      onReadyRef.current?.()
     })
 
     wavesurfer.current.on('audioprocess', () => {
       const time = wavesurfer.current?.getCurrentTime() || 0
       setCurrentTime(time)
-      onTimeUpdate?.(time)
+      onTimeUpdateRef.current?.(time)
     })
 
     wavesurfer.current.on('interaction', newTime => {
       setCurrentTime(newTime)
-      onTimeUpdate?.(newTime)
+      onTimeUpdateRef.current?.(newTime)
     })
 
     wavesurfer.current.on('finish', () => {
@@ -77,7 +114,7 @@ export default function WaveformPlayer({
         wavesurfer.current?.destroy()
       } catch {}
     }
-  }, [url, onReady, onTimeUpdate, onAddComment])
+  }, [url])
 
   // Sync comments to regions/markers
   useEffect(() => {
@@ -85,11 +122,31 @@ export default function WaveformPlayer({
 
     regions.current.clearRegions()
 
-    comments.forEach(comment => {
-      if (comment.timestamp) {
+    // Subscribe to region events
+    const subscriptions = [
+      regions.current.on('region-clicked', (region, e) => {
+        e.stopPropagation()
+        onCommentClickRef.current?.(region.id)
+      }),
+    ]
+
+    sortedComments.forEach(comment => {
+      // Coerce/guard timestamp (Firestore data can be surprising)
+      const ts =
+        typeof comment.timestamp === 'number'
+          ? comment.timestamp
+          : comment.timestamp == null
+            ? null
+            : Number(comment.timestamp)
+
+      if (ts != null && Number.isFinite(ts)) {
+        // Regions must have non-zero length; otherwise they can render at t=0.
+        const duration = wavesurfer.current?.getDuration() || 0
+        const end = Math.min(ts + 0.05, duration || ts + 0.05)
+
         regions.current?.addRegion({
-          start: comment.timestamp,
-          end: comment.timestamp, // Marker-like behavior
+          start: ts,
+          end, // tiny region to behave like a marker
           color: comment.solved
             ? 'rgba(0, 255, 0, 0.5)'
             : 'rgba(250, 129, 18, 0.8)', // Green if solved, Accent Orange if not
@@ -100,7 +157,11 @@ export default function WaveformPlayer({
         })
       }
     })
-  }, [comments, url, isReady]) // Re-run when comments change or url changes (new version)
+
+    return () => {
+      subscriptions.forEach(unsubscribe => unsubscribe())
+    }
+  }, [sortedComments, url, isReady]) // Re-run when comments change or url changes (new version)
 
   const togglePlay = () => {
     if (wavesurfer.current) {
@@ -114,7 +175,7 @@ export default function WaveformPlayer({
       const time = wavesurfer.current.getCurrentTime()
       wavesurfer.current.pause()
       setIsPlaying(false)
-      onAddComment?.(time)
+      onAddCommentRef.current?.(time)
     }
   }
 

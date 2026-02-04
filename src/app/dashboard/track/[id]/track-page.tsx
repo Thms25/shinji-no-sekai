@@ -1,10 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import { AnimatePresence } from 'framer-motion'
 import WaveformPlayer from '@/components/WaveformPlayer'
 import { MessageSquare, Download, ChevronDown, Plus } from 'lucide-react'
 import AddVersionModal from '@/components/AddVersionModal'
 import AddCommentModal from '@/components/AddCommentModal'
+import CommentThreadModal from '@/components/CommentThreadModal'
 import CommentList from '@/components/CommentList'
 import Breadcrumb from '@/components/Breadcrumb'
 import { useAuth } from '@/contexts/AuthContext'
@@ -30,6 +32,7 @@ export default function TrackPage({
   const [isVersionsOpen, setIsVersionsOpen] = useState(false)
   const [isCommentModalOpen, setIsCommentModalOpen] = useState(false)
   const [modalTimestamp, setModalTimestamp] = useState<number | null>(null)
+  const [selectedComment, setSelectedComment] = useState<Comment | null>(null)
 
   // Filter comments
   const filteredMainComments = comments.filter(c => !c.timestamp)
@@ -45,6 +48,13 @@ export default function TrackPage({
   const openMainCommentModal = () => {
     setModalTimestamp(null)
     setIsCommentModalOpen(true)
+  }
+
+  const handleCommentClick = (commentId: string) => {
+    const comment = comments.find(c => c.id === commentId)
+    if (comment) {
+      setSelectedComment(comment)
+    }
   }
 
   // Define breadcrumb items based on role
@@ -123,6 +133,7 @@ export default function TrackPage({
               key={activeVersion.id}
               url={activeVersion.url}
               onAddComment={handleAddComment}
+              onCommentClick={handleCommentClick}
               comments={filteredVersionComments}
             />
           ) : (
@@ -170,6 +181,7 @@ export default function TrackPage({
               comments={filteredMainComments}
               trackId={track.id}
               userRole={role || 'artist'}
+              onCommentClick={handleCommentClick}
             />
           </div>
 
@@ -182,6 +194,7 @@ export default function TrackPage({
                 comments={filteredVersionComments}
                 trackId={track.id}
                 userRole={role || 'artist'}
+                onCommentClick={handleCommentClick}
               />
             </div>
           )}
@@ -199,6 +212,19 @@ export default function TrackPage({
           userRole={role || 'artist'}
         />
       )}
+
+      <AnimatePresence>
+        {selectedComment && user && (
+          <CommentThreadModal
+            trackId={track.id}
+            comment={selectedComment}
+            onClose={() => setSelectedComment(null)}
+            userId={user.uid}
+            userName={user.displayName || user.email || 'User'}
+            userRole={role || 'artist'}
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 }
