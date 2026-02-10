@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb'
 import { getDbInstance } from './client'
 
-export type SitePageId = 'home' | 'work'
+export type SitePageId = 'home' | 'work' | 'bio' | 'contact'
 
 export interface WorkArtist {
   _id?: ObjectId
@@ -26,9 +26,23 @@ export interface HomePageContent {
   ctaSecondaryHref: string
 }
 
+export interface BioPageContent {
+  title: string
+  image: string
+  paragraph1: string
+  paragraph2: string
+}
+
+export interface ContactPageContent {
+  heading: string
+  subtext: string
+}
+
 export type SitePageContent = {
   home: HomePageContent
   work: WorkPageContent
+  bio: BioPageContent
+  contact: ContactPageContent
 }
 
 export interface ContentDocument<P extends SitePageId = SitePageId> {
