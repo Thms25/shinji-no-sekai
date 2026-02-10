@@ -1,20 +1,36 @@
-import { adminDb } from "@/lib/firebase-admin";
 import CreateArtistModal from "@/components/admin/CreateArtistModal";
 import ArtistList from "@/components/admin/ArtistList";
+import { getDb } from "@/lib/mongodb";
+
+const DB_NAME = process.env.MONGODB_DB_NAME || "Shinji";
 
 // Force dynamic rendering since we are fetching data that changes
 export const dynamic = "force-dynamic";
 
 async function getArtists() {
   try {
-    const snapshot = await adminDb.collection("users")
-      .where("role", "==", "artist")
-      .get();
-      
-    return snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-    })) as Array<{ id: string; displayName?: string; email: string; tracksCount?: number; role?: string }>;
+    const db = await getDb(DB_NAME);
+    const users = db.collection("users");
+
+    const docs = await users
+      .find<{ displayName?: string; email: string; tracksCount?: number; role?: string }>({
+        role: "artist",
+      })
+      .toArray();
+
+    return docs.map((doc) => ({
+      id: doc._id.toString(),
+      displayName: doc.displayName,
+      email: doc.email,
+      tracksCount: doc.tracksCount ?? 0,
+      role: doc.role,
+    })) as Array<{
+      id: string;
+      displayName?: string;
+      email: string;
+      tracksCount?: number;
+      role?: string;
+    }>;
   } catch (error) {
     console.error("Error fetching artists:", error);
     return [];

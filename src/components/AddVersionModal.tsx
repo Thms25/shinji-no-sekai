@@ -3,8 +3,6 @@
 import { useState } from "react";
 import { Plus, X } from "lucide-react";
 import { addVersion } from "@/actions/track-actions";
-import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import { app } from "@/lib/firebase"; // Client SDK for storage
 
 export default function AddVersionModal({ trackId }: { trackId: string }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -27,47 +25,41 @@ export default function AddVersionModal({ trackId }: { trackId: string }) {
     }
 
     try {
-        // 1. Upload file to Firebase Storage
-        const storage = getStorage(app);
-        const storageRef = ref(storage, `tracks/${trackId}/${Date.now()}_${file.name}`);
-        const uploadTask = uploadBytesResumable(storageRef, file);
+      // 1. Upload file to MongoDB GridFS via API
+      const uploadFormData = new FormData();
+      uploadFormData.append("file", file);
 
-        uploadTask.on('state_changed', 
-            (snapshot) => {
-                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                setUploadProgress(progress);
-            }, 
-            (error) => {
-                console.error("Upload error:", error);
-                setError("Upload failed: " + error.message);
-                setLoading(false);
-            }, 
-            async () => {
-                // 2. Get URL and save to Firestore via Server Action
-                const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                
-                // Prepare form data for server action
-                const serverFormData = new FormData();
-                serverFormData.append("trackId", trackId);
-                serverFormData.append("name", name);
-                serverFormData.append("url", downloadURL);
+      const uploadRes = await fetch("/api/audio/upload", {
+        method: "POST",
+        body: uploadFormData,
+      });
 
-                const result = await addVersion(null, serverFormData);
-                
-                if (result?.error) {
-                    setError(result.error);
-                } else {
-                    setIsOpen(false);
-                    // No need to reload if using revalidatePath in server action, 
-                    // but sometimes client state needs refresh.
-                }
-                setLoading(false);
-            }
-        );
+      if (!uploadRes.ok) {
+        const data = await uploadRes.json().catch(() => ({}));
+        throw new Error(data.error || "Upload failed.");
+      }
 
+      const { fileId } = await uploadRes.json();
+      const fileUrl = `/api/audio/${fileId}`;
+
+      // 2. Save version in MongoDB via Server Action
+      const serverFormData = new FormData();
+      serverFormData.append("trackId", trackId);
+      serverFormData.append("name", name);
+      serverFormData.append("url", fileUrl);
+
+      const result = await addVersion(null, serverFormData);
+
+      if (result?.error) {
+        setError(result.error);
+      } else {
+        setIsOpen(false);
+      }
     } catch (e: any) {
-        setError(e.message);
-        setLoading(false);
+      console.error("Upload/add version error:", e);
+      setError(e.message || "Upload failed.");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -107,12 +99,6 @@ export default function AddVersionModal({ trackId }: { trackId: string }) {
                         <label className="text-sm font-medium block mb-1">Audio File</label>
                         <input name="file" type="file" accept="audio/*" required className="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
                     </div>
-
-                    {loading && (
-                        <div className="w-full bg-white/10 rounded-full h-2.5 mb-4">
-                            <div className="bg-primary h-2.5 rounded-full transition-all duration-300" style={{ width: `${uploadProgress}%` }}></div>
-                        </div>
-                    )}
 
                     <button 
                         type="submit" 

@@ -6,16 +6,7 @@ import { use, useEffect, useState } from 'react'
 import TrackList from '@/components/TrackList'
 import { Track } from '@/utils/type-utils'
 import Breadcrumb from '@/components/Breadcrumb'
-import {
-  doc,
-  getDoc,
-  collection,
-  query,
-  where,
-  getDocs,
-} from 'firebase/firestore'
 import CreateTrackModal from '@/components/admin/CreateTrackModal'
-import { db } from '@/lib/firebase'
 
 export default function AdminArtistView({
   params,
@@ -37,25 +28,33 @@ export default function AdminArtistView({
       } else {
         // Fetch tracks and artist details
         const fetchData = async () => {
-          // Fetch Artist Name
           try {
-            const artistDoc = await getDoc(doc(db, 'users', id))
-            if (artistDoc.exists()) {
-              const data = artistDoc.data()
-              setArtistName(data.displayName || data.email || id)
+            // Fetch Artist Name from MongoDB
+            const artistRes = await fetch(
+              `/api/admin/artist-meta?id=${id}`,
+              { credentials: 'include' },
+            )
+            if (artistRes.ok) {
+              const artist = await artistRes.json()
+              setArtistName(artist.displayName || artist.email || id)
             }
           } catch (err) {
             console.error('Error fetching artist:', err)
           }
 
-          // Fetch Tracks
-          const q = query(collection(db, 'tracks'), where('artistId', '==', id))
-          const snapshot = await getDocs(q)
-          const fetchedTracks = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-          })) as Track[]
-          setTracks(fetchedTracks)
+          // Fetch Tracks from MongoDB
+          try {
+            const tracksRes = await fetch(
+              `/api/tracks/by-artist?artistId=${id}`,
+              { credentials: 'include' },
+            )
+            if (tracksRes.ok) {
+              const data = await tracksRes.json()
+              setTracks(data.tracks as Track[])
+            }
+          } catch (err) {
+            console.error('Error fetching tracks:', err)
+          }
         }
         fetchData()
       }

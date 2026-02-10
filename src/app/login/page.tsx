@@ -1,30 +1,48 @@
-"use client";
+'use client'
 
-import { useState } from "react";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/lib/firebase";
-import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
-import { Lock } from "lucide-react";
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { motion } from 'framer-motion'
+import { Lock } from 'lucide-react'
 
 export default function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const router = useRouter();
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const router = useRouter()
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
+    setError('')
+    setLoading(true)
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      // Force token refresh to ensure claims are up to date
-      await userCredential.user.getIdToken(true);
-      router.push("/dashboard");
-    } catch (err: any) {
-      setError("Failed to login. Please check your credentials.");
-      console.error(err);
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ email, password }),
+      })
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setError(
+          data.error || 'Failed to login. Please check your credentials.',
+        )
+        setLoading(false)
+        return
+      }
+
+      router.push('/dashboard')
+    } catch (err) {
+      setError('Failed to login. Please check your credentials.')
+      console.error(err)
+    } finally {
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <div className="flex items-center justify-center min-h-[calc(100vh-128px)] px-4">
@@ -46,7 +64,9 @@ export default function Login() {
         <form className="mt-8 space-y-6" onSubmit={handleLogin}>
           <div className="space-y-4">
             <div>
-              <label htmlFor="email" className="sr-only">Email address</label>
+              <label htmlFor="email" className="sr-only">
+                Email address
+              </label>
               <input
                 id="email"
                 name="email"
@@ -54,13 +74,15 @@ export default function Login() {
                 autoComplete="email"
                 required
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={e => setEmail(e.target.value)}
                 className="relative block w-full rounded-lg bg-black/20 border border-white/10 px-4 py-3 text-foreground placeholder-muted-foreground focus:z-10 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary sm:text-sm"
                 placeholder="Email address"
               />
             </div>
             <div>
-              <label htmlFor="password" className="sr-only">Password</label>
+              <label htmlFor="password" className="sr-only">
+                Password
+              </label>
               <input
                 id="password"
                 name="password"
@@ -68,7 +90,7 @@ export default function Login() {
                 autoComplete="current-password"
                 required
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={e => setPassword(e.target.value)}
                 className="relative block w-full rounded-lg bg-black/20 border border-white/10 px-4 py-3 text-foreground placeholder-muted-foreground focus:z-10 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary sm:text-sm"
                 placeholder="Password"
               />
@@ -76,19 +98,18 @@ export default function Login() {
           </div>
 
           {error && (
-            <div className="text-red-400 text-sm text-center">
-              {error}
-            </div>
+            <div className="text-red-400 text-sm text-center">{error}</div>
           )}
 
           <button
             type="submit"
+            disabled={loading}
             className="group relative flex w-full justify-center rounded-lg bg-foreground px-4 py-3 text-sm font-semibold text-background hover:bg-[#383838] hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-gray-900"
           >
-            Sign in
+            {loading ? 'Signing in...' : 'Sign in'}
           </button>
         </form>
       </motion.div>
     </div>
-  );
+  )
 }

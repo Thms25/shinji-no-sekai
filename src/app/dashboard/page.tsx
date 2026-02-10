@@ -5,12 +5,10 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import TrackList from '@/components/TrackList'
-import { collection, query, where, getDocs } from 'firebase/firestore'
-import { db } from '@/lib/firebase'
 
 export default function Dashboard() {
   const { user, loading, role } = useAuth()
-  console.log(user)
+  console.log('user from useAuth: ', user)
 
   const router = useRouter()
   const [tracks, setTracks] = useState<Track[]>([])
@@ -22,18 +20,19 @@ export default function Dashboard() {
       } else if (role === 'admin') {
         router.push('/admin')
       } else {
-        // Fetch tracks for artist
+        // Fetch tracks for artist from MongoDB via API
         const fetchTracks = async () => {
-          const q = query(
-            collection(db, 'tracks'),
-            where('artistId', '==', user.uid),
-          )
-          const snapshot = await getDocs(q)
-          const fetchedTracks = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-          })) as Track[]
-          setTracks(fetchedTracks)
+          try {
+            const res = await fetch(
+              `/api/tracks/by-artist?artistId=${user.id}`,
+              { credentials: 'include' },
+            )
+            if (!res.ok) return
+            const data = await res.json()
+            setTracks(data.tracks as Track[])
+          } catch (err) {
+            console.error('Error fetching tracks:', err)
+          }
         }
         fetchTracks()
       }
