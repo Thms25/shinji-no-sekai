@@ -26,6 +26,7 @@ export default function TrackPage({
   artistName?: string
 }) {
   const { user, role } = useAuth()
+  const isAdmin = role === 'admin'
   const [activeVersion, setActiveVersion] = useState<TrackVersion | null>(
     versions.length > 0 ? versions[versions.length - 1] : null,
   )
@@ -79,7 +80,9 @@ export default function TrackPage({
           <h1 className="text-3xl font-bold tracking-tight">
             {track?.title || 'Untitled Track'}
           </h1>
-          <p className="text-muted-foreground mt-1">Project ID: {track?.id}</p>
+          {isAdmin && (
+            <p className="text-muted-foreground mt-1">Track ID: {track?.id}</p>
+          )}
         </div>
 
         <div className="flex items-center gap-4">
@@ -122,7 +125,7 @@ export default function TrackPage({
             )}
           </div>
 
-          <AddVersionModal trackId={track.id} />
+          {isAdmin && <AddVersionModal trackId={track.id} />}
         </div>
       </div>
 

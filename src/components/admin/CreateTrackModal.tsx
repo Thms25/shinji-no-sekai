@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Upload, X } from 'lucide-react'
-import { createTrack } from '@/actions/admin-actions'
+import { createTrack } from '@/utils/actions/admin-actions'
 
 export default function CreateTrackModal({ artistId }: { artistId: string }) {
   const [isOpen, setIsOpen] = useState(false)

@@ -13,6 +13,7 @@ interface AuthContextType {
   user: AppUser | null;
   role: "admin" | "artist" | null;
   loading: boolean;
+  refreshUser: () => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -20,6 +21,7 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   role: null,
   loading: true,
+  refreshUser: async () => {},
   signOut: async () => {},
 });
 
@@ -31,36 +33,36 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchMe = async () => {
-      try {
-        const res = await fetch("/api/auth/me", {
-          credentials: "include",
-        });
-        if (!res.ok) {
-          setUser(null);
-          setRole(null);
-          setLoading(false);
-          return;
-        }
-        const data = await res.json();
-        if (data.user) {
-          setUser(data.user);
-          setRole(data.user.role);
-        } else {
-          setUser(null);
-          setRole(null);
-        }
-      } catch (err) {
-        console.error("Error fetching auth user:", err);
+  const refreshUser = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/me", {
+        credentials: "include",
+      });
+      if (!res.ok) {
         setUser(null);
         setRole(null);
-      } finally {
-        setLoading(false);
+        return;
       }
-    };
+      const data = await res.json();
+      if (data.user) {
+        setUser(data.user);
+        setRole(data.user.role);
+      } else {
+        setUser(null);
+        setRole(null);
+      }
+    } catch (err) {
+      console.error("Error fetching auth user:", err);
+      setUser(null);
+      setRole(null);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchMe();
+  useEffect(() => {
+    refreshUser();
   }, []);
 
   const signOut = async () => {
@@ -79,7 +81,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, role, loading, signOut }}>
+    <AuthContext.Provider value={{ user, role, loading, refreshUser, signOut }}>
       {children}
     </AuthContext.Provider>
   );

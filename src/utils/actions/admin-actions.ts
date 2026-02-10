@@ -1,10 +1,9 @@
 'use server'
 
 import { ObjectId } from 'mongodb'
-import { getDb } from '@/lib/mongodb'
+import { getDbInstance } from '@/utils/db/client'
 
 // Name of the database you configured in MONGODB_URI (e.g. shinji)
-const DB_NAME = process.env.MONGODB_DB_NAME || 'Shinji'
 
 export async function createArtist(formData: FormData) {
   const name = formData.get('name') as string
@@ -16,7 +15,11 @@ export async function createArtist(formData: FormData) {
   }
 
   try {
-    const db = await getDb(DB_NAME)
+    const db = await getDbInstance()
+    if (!db) {
+      return { error: 'Database connection failed.' }
+    }
+
     const users = db.collection('users')
 
     const existing = await users.findOne({ email })
@@ -57,7 +60,11 @@ export async function createTrack(formData: FormData) {
   }
 
   try {
-    const db = await getDb(DB_NAME)
+    const db = await getDbInstance()
+    if (!db) {
+      return { error: 'Database connection failed.' }
+    }
+
     const tracks = db.collection('tracks')
     const versions = db.collection('versions')
     const users = db.collection('users')
@@ -92,3 +99,4 @@ export async function createTrack(formData: FormData) {
     return { error: e instanceof Error ? e.message : 'Failed to create track.' }
   }
 }
+

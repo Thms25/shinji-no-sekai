@@ -1,7 +1,7 @@
 import { Comment } from '@/utils/type-utils'
 import { useState } from 'react'
 import { Check, Trash, MessageSquare } from 'lucide-react'
-import { solveComment, deleteComment } from '@/actions/comment-actions'
+import { solveComment, deleteComment } from '@/utils/actions/comment-actions'
 
 export default function CommentList({
   comments,

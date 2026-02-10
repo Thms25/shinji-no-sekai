@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getDb } from '@/lib/mongodb'
-import { Track } from '@/utils/type-utils'
-
-const DB_NAME = process.env.MONGODB_DB_NAME || 'Shinji'
+import { getTracksByArtistId } from '@/utils/db/tracks'
 
 export async function GET(req: NextRequest) {
   try {
@@ -16,23 +13,7 @@ export async function GET(req: NextRequest) {
       )
     }
 
-    const db = await getDb(DB_NAME)
-    const tracksCol = db.collection('tracks')
-
-    const docs = await tracksCol
-      .find<{ title: string; artistId: string; status: string; createdAt: string; updatedAt: string }>({
-        artistId,
-      })
-      .toArray()
-
-    const tracks: Track[] = docs.map((doc: any) => ({
-      id: doc._id.toString(),
-      title: doc.title,
-      artistId: doc.artistId,
-      status: doc.status,
-      createdAt: doc.createdAt?.toString() || '',
-      updatedAt: doc.updatedAt?.toString() || '',
-    }))
+    const tracks = await getTracksByArtistId(artistId)
 
     return NextResponse.json({ tracks })
   } catch (err) {

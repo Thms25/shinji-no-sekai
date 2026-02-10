@@ -43,9 +43,9 @@ export default function AddCommentModal({
     // Actually I can just call the server action directly.
     // I need to update the import in this file.
     // Let's assume I imported it correctly below.
-    const { addComment } = await import('@/actions/track-actions')
+    const { addComment } = await import('@/utils/actions/track-actions')
 
-    await addComment(null, formData)
+    await addComment(formData)
     setLoading(false)
     onClose()
   }

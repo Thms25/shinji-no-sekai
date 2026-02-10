@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { X, Send } from 'lucide-react'
 import { Comment, Reply } from '@/utils/type-utils'
-import { addReply, getReplies } from '@/actions/comment-actions'
+import { addReply, getReplies } from '@/utils/actions/comment-actions'
 
 interface CommentThreadModalProps {
   trackId: string

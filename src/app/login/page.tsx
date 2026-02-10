@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Lock } from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -11,6 +12,7 @@ export default function Login() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+  const { refreshUser } = useAuth()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -35,6 +37,8 @@ export default function Login() {
         return
       }
 
+      // Ensure the auth context is up to date before navigating
+      await refreshUser()
       router.push('/dashboard')
     } catch (err) {
       setError('Failed to login. Please check your credentials.')
