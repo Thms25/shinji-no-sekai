@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     if (!token) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-    const decoded = jwt.verify(token, JWT_SECRET) as { role?: string }
+    const decoded = jwt.verify(token, JWT_SECRET as string) as { role?: string }
     if (decoded.role !== 'admin') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
@@ -25,10 +25,7 @@ export async function POST(req: NextRequest) {
     const file = formData.get('file') as File | null
 
     if (!file) {
-      return NextResponse.json(
-        { error: 'File is required.' },
-        { status: 400 },
-      )
+      return NextResponse.json({ error: 'File is required.' }, { status: 400 })
     }
 
     const type = file.type ?? 'application/octet-stream'
