@@ -1,22 +1,22 @@
-import CreateArtistModal from "@/components/admin/CreateArtistModal";
-import ArtistList from "@/components/admin/ArtistList";
-import { listArtistsForAdmin } from "@/utils/db/artists";
-import Link from "next/link";
+import CreateArtistModal from '@/components/admin/CreateArtistModal'
+import ArtistList from '@/components/admin/ArtistList'
+import { listArtistsForAdmin } from '@/utils/db/artists'
+import Link from 'next/link'
 
 // Force dynamic rendering since we are fetching data that changes
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic'
 
 async function getArtists() {
   try {
-    return await listArtistsForAdmin();
+    return await listArtistsForAdmin()
   } catch (error) {
-    console.error("Error fetching artists:", error);
-    return [];
+    console.error('Error fetching artists:', error)
+    return []
   }
 }
 
 export default async function AdminDashboard() {
-  const artists = await getArtists();
+  const artists = await getArtists()
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -27,8 +27,8 @@ export default async function AdminDashboard() {
             Manage artists and site content
           </p>
         </div>
-        
-        <div className="flex gap-4">
+
+        <div className="flex gap-4 items-center">
           <Link
             href="/admin/site-content"
             className="px-4 py-2 rounded-lg border border-white/10 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors"
@@ -41,5 +41,5 @@ export default async function AdminDashboard() {
 
       <ArtistList initialArtists={artists} />
     </div>
-  );
+  )
 }

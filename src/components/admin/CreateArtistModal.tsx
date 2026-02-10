@@ -31,8 +31,10 @@ export default function CreateArtistModal() {
       } else {
         setCreateState({ error: result.error })
       }
-    } catch (e: any) {
-      setCreateState({ error: e.message || 'An unexpected error occurred' })
+    } catch (e: unknown) {
+      setCreateState({
+        error: e instanceof Error ? e.message : 'An unexpected error occurred',
+      })
     } finally {
       setLoading(false)
     }
@@ -42,7 +44,7 @@ export default function CreateArtistModal() {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="flex items-center justify-center gap-2 bg-white/10 text-white px-5 py-3 rounded-lg hover:bg-white/20 transition-colors font-medium"
+        className="flex items-center justify-center gap-2 bg-white/10 text-white px-4 py-2 rounded-lg hover:bg-white/20 transition-colors font-medium"
       >
         <Plus size={18} /> New Artist
       </button>
