@@ -3,9 +3,7 @@
 import { ObjectId } from 'mongodb'
 import { revalidatePath } from 'next/cache'
 import { Reply } from '@/utils/type-utils'
-import { getDb } from '@/lib/mongodb'
-
-const DB_NAME = process.env.MONGODB_DB_NAME || 'Shinji'
+import { getDbInstance } from '@/utils/db/client'
 
 export async function solveComment(
   commentId: string,
@@ -13,7 +11,10 @@ export async function solveComment(
   solved: boolean,
 ) {
   try {
-    const db = await getDb(DB_NAME)
+    const db = await getDbInstance()
+    if (!db) {
+      return { error: 'Database connection failed.' }
+    }
     const comments = db.collection('comments')
 
     await comments.updateOne(
@@ -31,7 +32,10 @@ export async function solveComment(
 
 export async function deleteComment(commentId: string, trackId: string) {
   try {
-    const db = await getDb(DB_NAME)
+    const db = await getDbInstance()
+    if (!db) {
+      return { error: 'Database connection failed.' }
+    }
     const comments = db.collection('comments')
     const replies = db.collection('replies')
 
@@ -55,7 +59,10 @@ export async function addReply(
   userRole: string,
 ) {
   try {
-    const db = await getDb(DB_NAME)
+    const db = await getDbInstance()
+    if (!db) {
+      return { error: 'Database connection failed.' }
+    }
     const replies = db.collection('replies')
 
     const reply = {
@@ -80,7 +87,10 @@ export async function addReply(
 
 export async function getReplies(trackId: string, commentId: string) {
   try {
-    const db = await getDb(DB_NAME)
+    const db = await getDbInstance()
+    if (!db) {
+      return { error: 'Database connection failed.' }
+    }
     const repliesCol = db.collection('replies')
 
     const docs = await repliesCol

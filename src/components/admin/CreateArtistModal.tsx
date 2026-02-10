@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { X, Plus } from 'lucide-react'
-import { createArtist } from '@/actions/admin-actions'
+import { createArtist } from '@/utils/actions/admin-actions'
 
 export default function CreateArtistModal() {
   const [isOpen, setIsOpen] = useState(false)
