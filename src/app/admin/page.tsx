@@ -1,6 +1,7 @@
 import CreateArtistModal from "@/components/admin/CreateArtistModal";
 import ArtistList from "@/components/admin/ArtistList";
 import { getDb } from "@/lib/mongodb";
+import { ObjectId } from "mongodb";
 
 const DB_NAME = process.env.MONGODB_DB_NAME || "Shinji";
 
@@ -13,7 +14,7 @@ async function getArtists() {
     const users = db.collection("users");
 
     const docs = await users
-      .find<{ displayName?: string; email: string; tracksCount?: number; role?: string }>({
+      .find<{ _id: ObjectId; displayName?: string; email: string; tracksCount?: number; role?: string }>({
         role: "artist",
       })
       .toArray();

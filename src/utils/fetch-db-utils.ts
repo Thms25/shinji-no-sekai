@@ -83,7 +83,7 @@ export async function getVersions(id: string) {
 
     const versionsDocs = await db
       .collection('versions')
-      .find<{ name: string; url: string; createdAt: string }>({ trackId: id })
+      .find<{ _id: ObjectId; name: string; url: string; createdAt: string | Date }>({ trackId: id })
       .sort({ createdAt: 1 })
       .toArray()
 

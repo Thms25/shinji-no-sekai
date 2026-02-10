@@ -207,8 +207,8 @@ export default function TrackPage({
           versionId={activeVersion?.id || null}
           timestamp={modalTimestamp}
           onClose={() => setIsCommentModalOpen(false)}
-          userId={user.uid}
-          userName={user.displayName || user.email || 'User'}
+          userId={user.id}
+          userName={user.email || 'User'}
           userRole={role || 'artist'}
         />
       )}
@@ -219,8 +219,8 @@ export default function TrackPage({
             trackId={track.id}
             comment={selectedComment}
             onClose={() => setSelectedComment(null)}
-            userId={user.uid}
-            userName={user.displayName || user.email || 'User'}
+            userId={user.id}
+            userName={user.email || 'User'}
             userRole={role || 'artist'}
           />
         )}

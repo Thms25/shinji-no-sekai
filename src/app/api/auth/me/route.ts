@@ -7,6 +7,8 @@ if (!JWT_SECRET) {
   throw new Error('JWT_SECRET is not set in environment variables')
 }
 
+const JWT_SECRET_VALUE: string = JWT_SECRET
+
 export async function GET(req: NextRequest) {
   try {
     const token = req.cookies.get('auth')?.value
@@ -14,7 +16,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ user: null }, { status: 401 })
     }
 
-    const decoded = jwt.verify(token, JWT_SECRET) as {
+    const decoded = jwt.verify(token, JWT_SECRET_VALUE) as unknown as {
       userId: string
       email: string
       role: 'admin' | 'artist'

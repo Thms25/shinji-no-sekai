@@ -6,10 +6,10 @@ const DB_NAME = process.env.MONGODB_DB_NAME || 'Shinji'
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { id } = params
+    const { id } = await params
     const bucket = await getAudioBucket(DB_NAME, 'audio')
     const objectId = new ObjectId(id)
 
