@@ -11,6 +11,7 @@ export default async function TrackPageLoader({
 }: {
   params: Promise<{ id: string }>
 }) {
+  await new Promise(resolve => setTimeout(resolve, 3000))
   const { id } = await params
   const track = await getTrack(id)
 

@@ -1,6 +1,7 @@
 import CreateArtistModal from "@/components/admin/CreateArtistModal";
 import ArtistList from "@/components/admin/ArtistList";
 import { listArtistsForAdmin } from "@/utils/db/artists";
+import Link from "next/link";
 
 // Force dynamic rendering since we are fetching data that changes
 export const dynamic = "force-dynamic";
@@ -22,11 +23,19 @@ export default async function AdminDashboard() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
-          <p className="text-muted-foreground mt-1">Manage artists</p>
+          <p className="text-muted-foreground mt-1">
+            Manage artists and site content
+          </p>
         </div>
         
         <div className="flex gap-4">
-            <CreateArtistModal />
+          <Link
+            href="/admin/site-content"
+            className="px-4 py-2 rounded-lg border border-white/10 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors"
+          >
+            Edit Site Content
+          </Link>
+          <CreateArtistModal />
         </div>
       </div>
 

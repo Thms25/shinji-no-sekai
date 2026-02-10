@@ -19,6 +19,24 @@
   --border-color: color-mix(in srgb, var(--color-lightest) 10%, transparent);
 }
 
+/* Loading fallback - equalizer bar animation */
+@keyframes eq-bar {
+  0%, 100% {
+    transform: scaleY(0.3);
+    opacity: 0.35;
+  }
+  50% {
+    transform: scaleY(1);
+    opacity: 0.65;
+  }
+}
+
+.eq-bar {
+  height: 32px;
+  transform-origin: bottom;
+  animation: eq-bar 1.4s ease-in-out infinite;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
