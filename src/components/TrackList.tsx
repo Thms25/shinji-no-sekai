@@ -1,17 +1,9 @@
 "use client";
 
+import { Track } from "@/utils/type-utils";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Play, Clock, Calendar } from "lucide-react";
-
-export interface Track {
-  id: string;
-  title: string;
-  artist: string;
-  updatedAt: string;
-  status: "In Progress" | "Mixed" | "Mastered";
-  duration: string;
-}
 
 interface TrackListProps {
   tracks: Track[];
@@ -40,9 +32,10 @@ export default function TrackList({ tracks, basePath = "/dashboard/track" }: Tra
                 <div>
                   <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">{track.title}</h3>
                   <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-                    <span className="flex items-center gap-1"><Clock size={14} /> {track.duration}</span>
-                    <span className="flex items-center gap-1"><Calendar size={14} /> {track.updatedAt}</span>
-                    {/* Optionally show artist name if admin view */}
+                    <span className="flex items-center gap-1">
+                        <Calendar size={14} /> {track.updatedAt ? new Date(track.updatedAt).toLocaleDateString() : 'N/A'}
+                    </span>
+                    {/* Duration could be stored or calculated, for now omitted or need a field */}
                   </div>
                 </div>
               </div>

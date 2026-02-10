@@ -1,6 +1,7 @@
-"use client";
+'use client'
 
-import { motion } from "framer-motion";
+import { motion } from 'framer-motion'
+import Image from 'next/image'
 
 export default function Bio() {
   return (
@@ -10,14 +11,19 @@ export default function Bio() {
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8 }}
-          className="aspect-3/4 bg-white/5 rounded-2xl overflow-hidden border border-white/10"
+          className="aspect-3/4 bg-white/5 rounded-2xl overflow-hidden border border-white/10 relative"
         >
           {/* Placeholder for bio image */}
-          <div className="w-full h-full bg-neutral-900" />
+          <Image
+            src="/images/shinji_home_studio.jpg"
+            alt="Shinji No Sekai"
+            fill
+            className="object-cover absolute inset-0"
+          />
         </motion.div>
-        
+
         <div className="space-y-6">
-          <motion.h1 
+          <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
@@ -25,7 +31,7 @@ export default function Bio() {
           >
             Shinji No Sekai
           </motion.h1>
-          
+
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -33,18 +39,19 @@ export default function Bio() {
             className="space-y-4 text-muted-foreground leading-relaxed"
           >
             <p>
-              I am an audio engineer dedicated to finding the perfect sound. 
-              My journey began in the analog era and has evolved into the digital realm, 
-              blending classic techniques with modern innovation.
+              I am an audio engineer dedicated to finding the perfect sound. My
+              journey began in the analog era and has evolved into the digital
+              realm, blending classic techniques with modern innovation.
             </p>
             <p>
-              Based in Tokyo, I work with artists from around the globe to bring their 
-              sonic visions to life. From mixing and mastering to full-scale production, 
-              I treat every project with the precision and passion it deserves.
+              Based in Tokyo, I work with artists from around the globe to bring
+              their sonic visions to life. From mixing and mastering to
+              full-scale production, I treat every project with the precision
+              and passion it deserves.
             </p>
           </motion.div>
         </div>
       </div>
     </div>
-  );
+  )
 }

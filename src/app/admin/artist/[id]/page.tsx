@@ -3,12 +3,10 @@
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { use, useEffect, useState } from 'react'
-import TrackList, { Track } from '@/components/TrackList'
-import Link from 'next/link'
-import { ChevronLeft } from 'lucide-react'
+import TrackList from '@/components/TrackList'
+import { Track } from '@/utils/type-utils'
+import Breadcrumb from '@/components/Breadcrumb'
 import CreateTrackModal from '@/components/admin/CreateTrackModal'
-import { collection, query, where, getDocs } from 'firebase/firestore'
-import { db } from '@/lib/firebase'
 
 export default function AdminArtistView({
   params,
@@ -19,6 +17,7 @@ export default function AdminArtistView({
   const { user, loading, role } = useAuth()
   const router = useRouter()
   const [tracks, setTracks] = useState<Track[]>([])
+  const [artistName, setArtistName] = useState<string>(id)
 
   useEffect(() => {
     if (!loading) {
@@ -27,17 +26,37 @@ export default function AdminArtistView({
       } else if (role !== 'admin') {
         router.push('/dashboard')
       } else {
-        // Fetch tracks
-        const fetchTracks = async () => {
-          const q = query(collection(db, 'tracks'), where('artistId', '==', id))
-          const snapshot = await getDocs(q)
-          const fetchedTracks = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-          })) as Track[]
-          setTracks(fetchedTracks)
+        // Fetch tracks and artist details
+        const fetchData = async () => {
+          try {
+            // Fetch Artist Name from MongoDB
+            const artistRes = await fetch(
+              `/api/admin/artist-meta?id=${id}`,
+              { credentials: 'include' },
+            )
+            if (artistRes.ok) {
+              const artist = await artistRes.json()
+              setArtistName(artist.displayName || artist.email || id)
+            }
+          } catch (err) {
+            console.error('Error fetching artist:', err)
+          }
+
+          // Fetch Tracks from MongoDB
+          try {
+            const tracksRes = await fetch(
+              `/api/tracks/by-artist?artistId=${id}`,
+              { credentials: 'include' },
+            )
+            if (tracksRes.ok) {
+              const data = await tracksRes.json()
+              setTracks(data.tracks as Track[])
+            }
+          } catch (err) {
+            console.error('Error fetching tracks:', err)
+          }
         }
-        fetchTracks()
+        fetchData()
       }
     }
   }, [user, loading, role, router, id])
@@ -48,16 +67,16 @@ export default function AdminArtistView({
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <Link
-        href="/admin"
-        className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
-      >
-        <ChevronLeft size={16} className="mr-1" /> Back to Artists
-      </Link>
+      <Breadcrumb
+        items={[{ label: 'Artists', href: '/admin' }, { label: artistName }]}
+        className="mb-6"
+      />
 
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Artist: {id}</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Artist: {artistName}
+          </h1>
           <p className="text-muted-foreground mt-1">Manage tracks</p>
         </div>
 
