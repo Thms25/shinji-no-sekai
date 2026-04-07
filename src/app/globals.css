@@ -1,22 +1,18 @@
 @import "tailwindcss";
 
-:root {
-  /* Color Palette Definition */
-  --color-lightest: #FAF3E1;
-  --color-light: #F5E7C6;
-  --color-accent: #FA8112;
-  --color-dark: #222222;
+@theme {
+  --color-background:       #FBF5EC;
+  --color-foreground:       #3B2F22;
+  --color-primary:          #C4956A;
+  --color-secondary:        #8B6E52;
+  --color-muted-foreground: #8B6E52;
+  --color-card:             #F0E4D0;
+  --color-border:           #E2CEB4;
+  --color-subtle:           #F5EDE0;
+  --color-tag:              #BFC4B2;
 
-  /* Theme Mapping */
-  --background: var(--color-dark);
-  --foreground: var(--color-lightest);
-  --primary: var(--color-accent);
-  --secondary: var(--color-light);
-  
-  /* Derived colors with opacity for utility */
-  --muted-foreground: color-mix(in srgb, var(--color-lightest) 60%, transparent);
-  --card-background: color-mix(in srgb, var(--color-light) 5%, transparent);
-  --border-color: color-mix(in srgb, var(--color-lightest) 10%, transparent);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
 }
 
 /* Loading fallback - equalizer bar animation */
@@ -35,23 +31,4 @@
   height: 32px;
   transform-origin: bottom;
   animation: eq-bar 1.4s ease-in-out infinite;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-primary: var(--primary);
-  --color-secondary: var(--secondary);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-card: var(--card-background);
-  --color-border: var(--border-color);
-  
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans), sans-serif;
 }
