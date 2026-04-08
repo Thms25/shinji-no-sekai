@@ -20,9 +20,6 @@ import {
 } from './content-defaults'
 import { SiteContentTabs } from './SiteContentTabs'
 import { HomeContentForm } from './HomeContentForm'
-import { WorkContentForm } from './WorkContentForm'
-import { BioContentForm } from './BioContentForm'
-import { ContactContentForm } from './ContactContentForm'
 
 export default function SiteContentAdmin() {
   const { user, loading, role } = useAuth()
@@ -32,8 +29,7 @@ export default function SiteContentAdmin() {
   const [homeContent, setHomeContent] = useState<HomePageContent>(DEFAULT_HOME_CONTENT)
   const [workContent, setWorkContent] = useState<WorkPageContent>(DEFAULT_WORK_CONTENT)
   const [bioContent, setBioContent] = useState<BioPageContent>(DEFAULT_BIO_CONTENT)
-  const [contactContent, setContactContent] =
-    useState<ContactPageContent>(DEFAULT_CONTACT_CONTENT)
+  const [contactContent, setContactContent] = useState<ContactPageContent>(DEFAULT_CONTACT_CONTENT)
   const [loadingContent, setLoadingContent] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
@@ -69,8 +65,7 @@ export default function SiteContentAdmin() {
             }
             if (contactRes.ok) {
               const data = await contactRes.json()
-              if (data.content)
-                setContactContent({ ...DEFAULT_CONTACT_CONTENT, ...data.content })
+              if (data.content) setContactContent({ ...DEFAULT_CONTACT_CONTENT, ...data.content })
             }
           } catch (err) {
             console.error('Error fetching site content:', err)
@@ -89,7 +84,7 @@ export default function SiteContentAdmin() {
   }
 
   const savePage = async (
-    page: TabId,
+    page: string,
     content: HomePageContent | WorkPageContent | BioPageContent | ContactPageContent,
   ) => {
     setSaving(true)
@@ -101,7 +96,7 @@ export default function SiteContentAdmin() {
         body: JSON.stringify({ page, content }),
       })
       if (!res.ok) throw new Error('Failed to save')
-      showMessage(`${page === 'home' ? 'Home' : page === 'work' ? 'Work' : page === 'bio' ? 'Bio' : 'Contact'} page content saved`)
+      showMessage('Content saved')
     } catch (err) {
       console.error(err)
       showMessage('Error saving content')
@@ -126,7 +121,7 @@ export default function SiteContentAdmin() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight">Site Content Editor</h1>
         <p className="text-muted-foreground mt-1">
-          Edit the public-facing content for the home, work, bio, and contact pages.
+          Edit the public-facing content for each section of the site.
         </p>
       </div>
 
@@ -138,45 +133,34 @@ export default function SiteContentAdmin() {
         <>
           {activeTab === 'home' && (
             <HomeContentForm
-              content={homeContent}
-              onChange={setHomeContent}
-              onSave={() => savePage('home', homeContent)}
-              saving={saving}
-            />
-          )}
-          {activeTab === 'work' && (
-            <WorkContentForm
-              content={workContent}
-              onChange={setWorkContent}
-              openIndex={openArtistIndex}
-              onOpenChange={setOpenArtistIndex}
-              onSave={() => savePage('work', workContent)}
+              homeContent={homeContent}
+              onHomeChange={setHomeContent}
+              onHomeSave={() => savePage('home', homeContent)}
+              bioContent={bioContent}
+              onBioChange={setBioContent}
+              onBioSave={() => savePage('bio', bioContent)}
+              workContent={workContent}
+              onWorkChange={setWorkContent}
+              openArtistIndex={openArtistIndex}
+              onOpenArtistChange={setOpenArtistIndex}
+              onWorkSave={() => savePage('work', workContent)}
+              contactContent={contactContent}
+              onContactChange={setContactContent}
+              onContactSave={() => savePage('contact', contactContent)}
               saving={saving}
               showMessage={showMessage}
             />
           )}
           {activeTab === 'bio' && (
-            <BioContentForm
-              content={bioContent}
-              onChange={setBioContent}
-              onSave={() => savePage('bio', bioContent)}
-              saving={saving}
-              showMessage={showMessage}
-            />
-          )}
-          {activeTab === 'contact' && (
-            <ContactContentForm
-              content={contactContent}
-              onChange={setContactContent}
-              onSave={() => savePage('contact', contactContent)}
-              saving={saving}
-            />
+            <div className="py-8 text-center text-muted-foreground">
+              <p>Bio content editor coming soon.</p>
+            </div>
           )}
         </>
       )}
 
       {message && (
-        <div className="fixed bottom-6 right-6 bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-sm">
+        <div className="fixed bottom-6 right-6 bg-card border border-border rounded-lg px-4 py-2 text-sm shadow-sm">
           {message}
         </div>
       )}

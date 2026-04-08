@@ -35,7 +35,7 @@ export function ArtistAccordionItem({
   onImageUpload,
 }: ArtistAccordionItemProps) {
   return (
-    <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
+    <div className="bg-card border border-border rounded-xl overflow-hidden">
       <div
         role="button"
         tabIndex={0}
@@ -46,7 +46,7 @@ export function ArtistAccordionItem({
             onToggle()
           }
         }}
-        className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition-colors cursor-pointer"
+        className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-subtle transition-colors cursor-pointer"
       >
         <div
           className="flex items-center gap-0.5 shrink-0"
@@ -59,7 +59,7 @@ export function ArtistAccordionItem({
               onMoveUp()
             }}
             disabled={index === 0}
-            className="p-1.5 rounded hover:bg-white/10 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:pointer-events-none"
+            className="p-1.5 rounded hover:bg-border text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:pointer-events-none"
             aria-label="Move up"
           >
             <ChevronUp size={18} />
@@ -71,7 +71,7 @@ export function ArtistAccordionItem({
               onMoveDown()
             }}
             disabled={index === totalArtists - 1}
-            className="p-1.5 rounded hover:bg-white/10 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:pointer-events-none"
+            className="p-1.5 rounded hover:bg-border text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:pointer-events-none"
             aria-label="Move down"
           >
             <ChevronDown size={18} />
@@ -95,7 +95,7 @@ export function ArtistAccordionItem({
             e.stopPropagation()
             onRemove()
           }}
-          className="shrink-0 p-1.5 rounded text-muted-foreground hover:text-red-400 hover:bg-white/10 transition-colors"
+          className="shrink-0 p-1.5 rounded text-muted-foreground hover:text-red-400 hover:bg-border transition-colors"
           aria-label="Remove artist"
         >
           <Trash2 size={18} />
@@ -112,7 +112,7 @@ export function ArtistAccordionItem({
               height: { duration: 0.2 },
               opacity: { duration: 0.15 },
             }}
-            className="border-t border-white/10"
+            className="border-t border-border"
           >
             <div className="p-4 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -131,13 +131,13 @@ export function ArtistAccordionItem({
                     {(artist.roles ?? []).map((role, roleIdx) => (
                       <span
                         key={roleIdx}
-                        className="inline-flex items-center gap-1 rounded-full bg-white/10 pl-2.5 pr-1 py-0.5 text-xs font-medium"
+                        className="inline-flex items-center gap-1 rounded-full bg-border pl-2.5 pr-1 py-0.5 text-xs font-medium"
                       >
                         {role}
                         <button
                           type="button"
                           onClick={() => onRemoveRole(roleIdx)}
-                          className="rounded-full p-0.5 hover:bg-white/20 transition-colors"
+                          className="rounded-full p-0.5 hover:bg-card transition-colors"
                           aria-label={`Remove ${role}`}
                         >
                           <X size={12} />
@@ -168,7 +168,7 @@ export function ArtistAccordionItem({
                           input.value = ''
                         }
                       }}
-                      className="shrink-0 px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-sm font-medium transition-colors"
+                      className="shrink-0 px-3 py-2 rounded-lg bg-card hover:bg-border text-sm font-medium transition-colors"
                     >
                       Add
                     </button>
@@ -191,7 +191,7 @@ export function ArtistAccordionItem({
                   <label className="text-sm font-medium">Image</label>
                   <div className="flex items-center gap-3">
                     {artist.image && (
-                      <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-white/10">
+                      <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-border">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={artist.image}
@@ -200,7 +200,7 @@ export function ArtistAccordionItem({
                         />
                       </div>
                     )}
-                    <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-sm font-medium transition-colors">
+                    <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-card hover:bg-border text-sm font-medium transition-colors">
                       <UploadIcon size={16} />
                       {artist.image ? 'Change' : 'Upload'}
                       <input

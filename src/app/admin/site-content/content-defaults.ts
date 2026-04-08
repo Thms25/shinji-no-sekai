@@ -6,16 +6,18 @@ import type {
   ContactPageContent,
 } from '@/utils/db/content'
 
-export type TabId = 'home' | 'work' | 'bio' | 'contact'
+export type TabId = 'home' | 'bio'
 
 export const DEFAULT_HOME_CONTENT: HomePageContent = {
   headline: 'SHINJI NO SEKAI',
   subheadline:
     'Audio Engineer & Sound Designer based in Brussels. Crafting immersive sonic experiences.',
-  ctaPrimaryLabel: 'View Work',
-  ctaPrimaryHref: '/work',
-  ctaSecondaryLabel: 'Contact Me',
-  ctaSecondaryHref: '/contact',
+  keyValues: [
+    { title: 'Human connection', description: 'The prerequisite to everything else.' },
+    { title: 'Vision first', description: 'Understand the story before touching the sound.' },
+    { title: 'Full commitment', description: 'Every project is the only one that counts.' },
+    { title: 'Earned trust', description: 'Built slowly, session by session.' },
+  ],
 }
 
 export const EMPTY_WORK_ARTIST: WorkArtist = {
@@ -47,7 +49,5 @@ export const DEFAULT_CONTACT_CONTENT: ContactPageContent = {
 
 export const TAB_LABELS: [TabId, string][] = [
   ['home', 'Home Page'],
-  ['work', 'Work Page'],
-  ['bio', 'Bio Page'],
-  ['contact', 'Contact Page'],
+  ['bio', 'Bio'],
 ]

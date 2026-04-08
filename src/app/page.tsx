@@ -5,16 +5,24 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Send } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import type { HomePageContent, WorkPageContent, WorkArtist, ContactPageContent, BioPageContent } from '@/utils/db/content'
+import type {
+  HomePageContent,
+  WorkPageContent,
+  WorkArtist,
+  ContactPageContent,
+  BioPageContent,
+} from '@/utils/db/content'
 
 const FALLBACK_HOME_CONTENT: HomePageContent = {
   headline: 'SHINJI NO SEKAI',
   subheadline:
     'Audio Engineer & Sound Designer based in Brussels. Crafting immersive sonic experiences.',
-  ctaPrimaryLabel: 'View Work',
-  ctaPrimaryHref: '/work',
-  ctaSecondaryLabel: 'Contact Me',
-  ctaSecondaryHref: '/contact',
+  keyValues: [
+    { title: 'Human connection', description: 'The prerequisite to everything else.' },
+    { title: 'Vision first', description: 'Understand the story before touching the sound.' },
+    { title: 'Full commitment', description: 'Every project is the only one that counts.' },
+    { title: 'Earned trust', description: 'Built slowly, session by session.' },
+  ],
 }
 
 const FALLBACK_WORK_CONTENT: WorkPageContent = {
@@ -35,24 +43,6 @@ const FALLBACK_BIO: BioPageContent = {
     'Based in Tokyo, I work with artists from around the globe to bring their sonic visions to life. From mixing and mastering to full-scale production, I treat every project with the precision and passion it deserves.',
 }
 
-const KEY_VALUES = [
-  {
-    title: 'Human connection',
-    description: 'The prerequisite to everything else.',
-  },
-  {
-    title: 'Vision first',
-    description: 'Understand the story before touching the sound.',
-  },
-  {
-    title: 'Full commitment',
-    description: 'Every project is the only one that counts.',
-  },
-  {
-    title: 'Earned trust',
-    description: 'Built slowly, session by session.',
-  },
-]
 
 function getSpotifyArtistId(artist: WorkArtist): string | null {
   if (artist.spotify_id) return artist.spotify_id
@@ -64,7 +54,9 @@ function getSpotifyArtistId(artist: WorkArtist): string | null {
 function ArtistCard({ artist }: { artist: WorkArtist }) {
   const spotifyLink =
     artist.spotify_url ||
-    (artist.spotify_id ? `https://open.spotify.com/artist/${artist.spotify_id}` : null)
+    (artist.spotify_id
+      ? `https://open.spotify.com/artist/${artist.spotify_id}`
+      : null)
   const spotifyEmbedId = getSpotifyArtistId(artist)
 
   return (
@@ -84,13 +76,15 @@ function ArtistCard({ artist }: { artist: WorkArtist }) {
           </div>
         )}
         <div className="flex-1">
-          <h2 className="text-lg font-semibold tracking-tight">{artist.name}</h2>
+          <h2 className="font-title text-lg font-semibold tracking-tight">
+            {artist.name}
+          </h2>
           {artist.roles && artist.roles.length > 0 && (
             <div className="mt-1 flex flex-wrap gap-1.5">
               {artist.roles.map((role, idx) => (
                 <span
                   key={idx}
-                  className="rounded-full bg-tag/70 px-2.5 py-0.5 text-xs font-medium text-secondary"
+                  className="font-caption rounded-full bg-tag/70 px-2.5 py-0.5 text-xs font-medium text-secondary"
                 >
                   {role}
                 </span>
@@ -101,7 +95,9 @@ function ArtistCard({ artist }: { artist: WorkArtist }) {
       </div>
 
       {artist.description && (
-        <p className="text-sm text-muted-foreground leading-relaxed">{artist.description}</p>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          {artist.description}
+        </p>
       )}
 
       {spotifyLink && (
@@ -124,7 +120,7 @@ function ArtistCard({ artist }: { artist: WorkArtist }) {
             href={spotifyLink}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center text-xs font-medium text-primary hover:text-primary/80"
+            className="font-caption inline-flex items-center text-xs font-medium text-primary hover:text-primary/80"
           >
             Listen on Spotify
           </Link>
@@ -135,10 +131,15 @@ function ArtistCard({ artist }: { artist: WorkArtist }) {
 }
 
 export default function Home() {
-  const [homeContent, setHomeContent] = useState<HomePageContent>(FALLBACK_HOME_CONTENT)
+  const [homeContent, setHomeContent] = useState<HomePageContent>(
+    FALLBACK_HOME_CONTENT,
+  )
   const [bioContent, setBioContent] = useState<BioPageContent>(FALLBACK_BIO)
-  const [workContent, setWorkContent] = useState<WorkPageContent>(FALLBACK_WORK_CONTENT)
-  const [contactContent, setContactContent] = useState<ContactPageContent>(FALLBACK_CONTACT)
+  const [workContent, setWorkContent] = useState<WorkPageContent>(
+    FALLBACK_WORK_CONTENT,
+  )
+  const [contactContent, setContactContent] =
+    useState<ContactPageContent>(FALLBACK_CONTACT)
 
   useEffect(() => {
     const fetchHome = async () => {
@@ -146,7 +147,8 @@ export default function Home() {
         const res = await fetch('/api/content?page=home', { cache: 'no-store' })
         if (!res.ok) throw new Error('Failed to load home content')
         const data = await res.json()
-        if (data.content) setHomeContent({ ...FALLBACK_HOME_CONTENT, ...data.content })
+        if (data.content)
+          setHomeContent({ ...FALLBACK_HOME_CONTENT, ...data.content })
       } catch (err) {
         console.error(err)
       }
@@ -157,7 +159,8 @@ export default function Home() {
         const res = await fetch('/api/content?page=work', { cache: 'no-store' })
         if (!res.ok) throw new Error('Failed to load work content')
         const data = await res.json()
-        if (data.content) setWorkContent({ ...FALLBACK_WORK_CONTENT, ...data.content })
+        if (data.content)
+          setWorkContent({ ...FALLBACK_WORK_CONTENT, ...data.content })
       } catch (err) {
         console.error(err)
       }
@@ -165,10 +168,13 @@ export default function Home() {
 
     const fetchContact = async () => {
       try {
-        const res = await fetch('/api/content?page=contact', { cache: 'no-store' })
+        const res = await fetch('/api/content?page=contact', {
+          cache: 'no-store',
+        })
         if (!res.ok) return
         const data = await res.json()
-        if (data.content) setContactContent({ ...FALLBACK_CONTACT, ...data.content })
+        if (data.content)
+          setContactContent({ ...FALLBACK_CONTACT, ...data.content })
       } catch (err) {
         console.error(err)
       }
@@ -196,13 +202,13 @@ export default function Home() {
   return (
     <div className="font-sans">
       {/* Hero */}
-      <section className="flex flex-col items-center justify-center min-h-screen px-8 sm:px-20 py-20">
+      <section className="flex flex-col items-center justify-center min-h-[calc(100vh-64px)] px-8 sm:px-20 py-20">
         <div className="flex flex-col gap-12 items-center text-center max-w-3xl w-full">
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: 'easeOut' }}
-            className="text-5xl sm:text-7xl font-bold tracking-tighter"
+            className="font-title text-5xl sm:text-7xl font-bold tracking-tighter"
           >
             {homeContent.headline}
           </motion.h1>
@@ -211,24 +217,28 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2, ease: 'easeOut' }}
-            className="text-xl text-muted-foreground"
+            className="font-caption text-xl text-muted-foreground"
           >
             {homeContent.subheadline}
           </motion.p>
 
           <div className="grid grid-cols-2 gap-x-12 gap-y-8 w-full max-w-lg">
-            {KEY_VALUES.map((value, idx) => (
+            {homeContent.keyValues.map((value, idx) => (
               <motion.div
                 key={idx}
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.4 + idx * 0.1, ease: 'easeOut' }}
+                transition={{
+                  duration: 0.6,
+                  delay: 0.4 + idx * 0.1,
+                  ease: 'easeOut',
+                }}
                 className="flex flex-col gap-1.5 text-center"
               >
-                <span className="text-sm font-semibold tracking-tight text-foreground/90">
+                <span className="font-title text-sm font-semibold tracking-tight text-foreground/90">
                   {value.title}
                 </span>
-                <span className="text-xs text-muted-foreground/60 leading-relaxed">
+                <span className="font-caption text-xs text-muted-foreground/60 leading-relaxed">
                   {value.description}
                 </span>
               </motion.div>
@@ -270,7 +280,7 @@ export default function Home() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="text-4xl font-bold tracking-tight"
+              className="font-title text-4xl font-bold tracking-tight"
             >
               {bioContent.title}
             </motion.h2>
@@ -290,12 +300,15 @@ export default function Home() {
       </section>
 
       {/* Work */}
-      <section id="work" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
+      <section
+        id="work"
+        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24"
+      >
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-4xl font-bold mb-12 tracking-tight"
+          className="font-title text-4xl font-bold mb-12 tracking-tight"
         >
           Selected Work
         </motion.h2>
@@ -322,7 +335,10 @@ export default function Home() {
       </section>
 
       {/* Contact */}
-      <section id="contact" className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+      <section
+        id="contact"
+        className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-24"
+      >
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -331,51 +347,64 @@ export default function Home() {
           className="space-y-8"
         >
           <div className="text-center space-y-4">
-            <h2 className="text-4xl font-bold tracking-tight">{contactContent.heading}</h2>
-            <p className="text-muted-foreground">{contactContent.subtext}</p>
+            <h2 className="font-title text-4xl font-bold tracking-tight">
+              {contactContent.heading}
+            </h2>
+            <p className="font-caption text-muted-foreground">
+              {contactContent.subtext}
+            </p>
           </div>
 
           <form className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label htmlFor="name" className="text-sm font-medium">
+                <label
+                  htmlFor="name"
+                  className="font-caption text-sm font-medium"
+                >
                   Name
                 </label>
                 <input
                   id="name"
                   type="text"
-                  className="w-full bg-subtle border border-border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                  className="font-caption w-full bg-subtle border border-border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
                   placeholder="Your name"
                 />
               </div>
               <div className="space-y-2">
-                <label htmlFor="email" className="text-sm font-medium">
+                <label
+                  htmlFor="email"
+                  className="font-caption text-sm font-medium"
+                >
                   Email
                 </label>
                 <input
                   id="email"
                   type="email"
-                  className="w-full bg-subtle border border-border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                  className="font-caption w-full bg-subtle border border-border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
                   placeholder="your@email.com"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="message" className="text-sm font-medium">
+              <label
+                htmlFor="message"
+                className="font-caption text-sm font-medium"
+              >
                 Message
               </label>
               <textarea
                 id="message"
                 rows={6}
-                className="w-full bg-subtle border border-border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all resize-none"
+                className="font-sans w-full bg-subtle border border-border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all resize-none"
                 placeholder="Tell me about your project..."
               />
             </div>
 
             <button
               type="submit"
-              className="w-full bg-foreground text-background font-medium py-3 rounded-lg hover:bg-secondary hover:text-background transition-colors flex items-center justify-center gap-2"
+              className="font-caption w-full bg-foreground text-background font-medium py-3 rounded-lg hover:bg-secondary hover:text-background transition-colors flex items-center justify-center gap-2"
             >
               Send Message <Send size={18} />
             </button>

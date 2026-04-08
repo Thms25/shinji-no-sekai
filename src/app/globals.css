@@ -10,9 +10,22 @@
   --color-border:           #E2CEB4;
   --color-subtle:           #F5EDE0;
   --color-tag:              #BFC4B2;
+}
 
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+@theme inline {
+  /* Lora — warm serif, default body/primary text */
+  --font-sans: var(--font-lora);
+}
+
+@layer utilities {
+  /* Jost — geometric sans, titles & headings */
+  .font-title {
+    font-family: var(--font-jost, 'Jost', sans-serif);
+  }
+  /* DM Sans — clean humanist sans, subtitles, captions, labels, UI */
+  .font-caption {
+    font-family: var(--font-dm-sans, 'DM Sans', sans-serif);
+  }
 }
 
 /* Loading fallback - equalizer bar animation */
