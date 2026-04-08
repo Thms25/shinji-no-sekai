@@ -17,13 +17,15 @@ export interface WorkPageContent {
   artists: WorkArtist[]
 }
 
+export interface KeyValue {
+  title: string
+  description: string
+}
+
 export interface HomePageContent {
   headline: string
   subheadline: string
-  ctaPrimaryLabel: string
-  ctaPrimaryHref: string
-  ctaSecondaryLabel: string
-  ctaSecondaryHref: string
+  keyValues: KeyValue[]
 }
 
 export interface BioPageContent {

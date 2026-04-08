@@ -1,18 +1,28 @@
 import type { Metadata } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
+import { Jost, Lora, DM_Sans } from 'next/font/google'
+import { cookies } from 'next/headers'
 import './globals.css'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import { AuthProvider } from '@/contexts/AuthContext'
+import { LocaleProvider, type Locale } from '@/contexts/LocaleContext'
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
+const jost = Jost({
+  variable: '--font-jost',
   subsets: ['latin'],
+  display: 'swap',
 })
 
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
+const lora = Lora({
+  variable: '--font-lora',
   subsets: ['latin'],
+  display: 'swap',
+})
+
+const dmSans = DM_Sans({
+  variable: '--font-dm-sans',
+  subsets: ['latin'],
+  display: 'swap',
 })
 
 export const metadata: Metadata = {
@@ -20,23 +30,29 @@ export const metadata: Metadata = {
   description: 'Modern audio engineering and production services.',
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const cookieStore = await cookies()
+  const rawLocale = cookieStore.get('locale')?.value
+  const initialLocale: Locale = rawLocale === 'fr' ? 'fr' : 'en'
+
   return (
-    <html lang="en" className="dark">
+    <html lang={initialLocale}>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-background text-foreground`}
+        className={`${jost.variable} ${lora.variable} ${dmSans.variable} antialiased min-h-screen flex flex-col bg-background text-foreground`}
       >
-        <AuthProvider>
-          <Navbar />
-          <main className="grow pt-16" suppressHydrationWarning>
-            {children}
-          </main>
-          <Footer />
-        </AuthProvider>
+        <LocaleProvider initialLocale={initialLocale}>
+          <AuthProvider>
+            <Navbar />
+            <main className="grow" suppressHydrationWarning>
+              {children}
+            </main>
+            <Footer />
+          </AuthProvider>
+        </LocaleProvider>
       </body>
     </html>
   )

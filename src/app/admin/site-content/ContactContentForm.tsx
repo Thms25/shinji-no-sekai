@@ -42,7 +42,7 @@ export function ContactContentForm({
         <button
           onClick={onSave}
           disabled={saving}
-          className="bg-primary text-white px-6 py-3 rounded-lg font-medium hover:bg-primary/90 transition-colors disabled:opacity-60"
+          className="bg-foreground text-background px-6 py-3 rounded-lg font-medium hover:bg-secondary transition-colors disabled:opacity-60"
         >
           {saving ? 'Saving…' : 'Save Contact Content'}
         </button>

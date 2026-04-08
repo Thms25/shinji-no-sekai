@@ -63,7 +63,7 @@ export function BioContentForm({
         <label className="text-sm font-medium">Image</label>
         <div className="flex items-center gap-3">
           {content.image && (
-            <div className="h-24 w-24 shrink-0 overflow-hidden rounded-lg bg-white/10 border border-white/10">
+            <div className="h-24 w-24 shrink-0 overflow-hidden rounded-lg bg-border border border-border">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={content.image}
@@ -72,7 +72,7 @@ export function BioContentForm({
               />
             </div>
           )}
-          <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-sm font-medium transition-colors disabled:opacity-60">
+          <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-card hover:bg-border text-sm font-medium transition-colors disabled:opacity-60">
             <UploadIcon size={16} />
             {uploading ? 'Uploading…' : content.image ? 'Change' : 'Upload'}
             <input
@@ -118,7 +118,7 @@ export function BioContentForm({
         <button
           onClick={onSave}
           disabled={saving}
-          className="bg-primary text-white px-6 py-3 rounded-lg font-medium hover:bg-primary/90 transition-colors disabled:opacity-60"
+          className="bg-foreground text-background px-6 py-3 rounded-lg font-medium hover:bg-secondary transition-colors disabled:opacity-60"
         >
           {saving ? 'Saving…' : 'Save Bio Content'}
         </button>
