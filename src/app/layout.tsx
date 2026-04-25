@@ -1,9 +1,7 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
-import Navbar from '@/components/Navbar'
-import Footer from '@/components/Footer'
-import { AuthProvider } from '@/contexts/AuthContext'
+import { cookies } from 'next/headers'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -20,23 +18,20 @@ export const metadata: Metadata = {
   description: 'Modern audio engineering and production services.',
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode
-}>) {
+}) {
+  const cookieStore = await cookies()
+  const locale = cookieStore.get('locale')?.value ?? 'fr'
+
   return (
-    <html lang="en" className="dark">
+    <html lang={locale} className="dark">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-background text-foreground`}
       >
-        <AuthProvider>
-          <Navbar />
-          <main className="grow pt-16" suppressHydrationWarning>
-            {children}
-          </main>
-          <Footer />
-        </AuthProvider>
+        {children}
       </body>
     </html>
   )
