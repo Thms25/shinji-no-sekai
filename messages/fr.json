@@ -1,13 +1,7 @@
 {
   "nav": {
-    "home": "Accueil",
-    "work": "Travaux",
-    "bio": "Bio",
-    "contact": "Contact",
-    "admin": "Admin",
-    "dashboard": "Tableau de bord",
-    "login": "Connexion",
-    "logout": "Déconnexion"
+    "fr": "FR",
+    "en": "EN"
   },
   "footer": {
     "rights": "Tous droits réservés."
@@ -15,8 +9,12 @@
   "home": {
     "headline": "SHINJI NO SEKAI",
     "subheadline": "Ingénieur du son & designer sonore basé à Bruxelles. Créateur d'expériences sonores immersives.",
-    "ctaPrimaryLabel": "Voir les travaux",
-    "ctaSecondaryLabel": "Me contacter"
+    "keyValues": [
+      { "title": "Connexion humaine", "description": "Le prérequis à tout le reste." },
+      { "title": "La vision d'abord", "description": "Comprendre l'histoire avant de toucher au son." },
+      { "title": "Engagement total", "description": "Chaque projet est le seul qui compte." },
+      { "title": "Confiance méritée", "description": "Construite lentement, session après session." }
+    ]
   },
   "bio": {
     "title": "Shinji No Sekai",

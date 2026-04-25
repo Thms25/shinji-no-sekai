@@ -1,13 +1,7 @@
 {
   "nav": {
-    "home": "Home",
-    "work": "Work",
-    "bio": "Bio",
-    "contact": "Contact",
-    "admin": "Admin",
-    "dashboard": "Dashboard",
-    "login": "Login",
-    "logout": "Logout"
+    "fr": "FR",
+    "en": "EN"
   },
   "footer": {
     "rights": "All rights reserved."
@@ -15,8 +9,12 @@
   "home": {
     "headline": "SHINJI NO SEKAI",
     "subheadline": "Audio Engineer & Sound Designer based in Brussels. Crafting immersive sonic experiences.",
-    "ctaPrimaryLabel": "View Work",
-    "ctaSecondaryLabel": "Contact Me"
+    "keyValues": [
+      { "title": "Human connection", "description": "The prerequisite to everything else." },
+      { "title": "Vision first", "description": "Understand the story before touching the sound." },
+      { "title": "Full commitment", "description": "Every project is the only one that counts." },
+      { "title": "Earned trust", "description": "Built slowly, session by session." }
+    ]
   },
   "bio": {
     "title": "Shinji No Sekai",

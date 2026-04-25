@@ -1,16 +1,24 @@
 import type { Metadata } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
-import './globals.css'
+import { Jost, Lora, DM_Sans } from 'next/font/google'
 import { cookies } from 'next/headers'
+import './globals.css'
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
+const jost = Jost({
+  variable: '--font-jost',
   subsets: ['latin'],
+  display: 'swap',
 })
 
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
+const lora = Lora({
+  variable: '--font-lora',
   subsets: ['latin'],
+  display: 'swap',
+})
+
+const dmSans = DM_Sans({
+  variable: '--font-dm-sans',
+  subsets: ['latin'],
+  display: 'swap',
 })
 
 export const metadata: Metadata = {
@@ -27,9 +35,9 @@ export default async function RootLayout({
   const locale = cookieStore.get('locale')?.value ?? 'fr'
 
   return (
-    <html lang={locale} className="dark">
+    <html lang={locale}>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-background text-foreground`}
+        className={`${jost.variable} ${lora.variable} ${dmSans.variable} antialiased min-h-screen flex flex-col bg-background text-foreground`}
       >
         {children}
       </body>

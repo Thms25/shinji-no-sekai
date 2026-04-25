@@ -18,7 +18,7 @@ export default async function LocaleLayout({
     <NextIntlClientProvider messages={messages}>
       <AuthProvider>
         <Navbar />
-        <main className="grow pt-16" suppressHydrationWarning>
+        <main className="grow" suppressHydrationWarning>
           {children}
         </main>
         <Footer />

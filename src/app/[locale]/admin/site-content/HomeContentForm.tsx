@@ -1,6 +1,6 @@
 'use client'
 
-import type { HomePageContent } from '@/utils/db/content'
+import type { HomePageContent, KeyValue } from '@/utils/db/content'
 import { inputClasses } from './form-styles'
 
 type HomeContentFormProps = {
@@ -16,6 +16,23 @@ export function HomeContentForm({
   onSave,
   saving,
 }: HomeContentFormProps) {
+  const keyValues: KeyValue[] = content.keyValues ?? []
+
+  const updateKeyValue = (idx: number, field: keyof KeyValue, value: string) => {
+    const updated = keyValues.map((kv, i) =>
+      i === idx ? { ...kv, [field]: value } : kv,
+    )
+    onChange({ ...content, keyValues: updated })
+  }
+
+  const addKeyValue = () => {
+    onChange({ ...content, keyValues: [...keyValues, { title: '', description: '' }] })
+  }
+
+  const removeKeyValue = (idx: number) => {
+    onChange({ ...content, keyValues: keyValues.filter((_, i) => i !== idx) })
+  }
+
   return (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -38,54 +55,49 @@ export function HomeContentForm({
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Primary CTA Label</label>
-          <input
-            type="text"
-            value={content.ctaPrimaryLabel}
-            onChange={e =>
-              onChange({ ...content, ctaPrimaryLabel: e.target.value })
-            }
-            className={inputClasses}
-          />
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-medium">Key Values</label>
+          <button
+            type="button"
+            onClick={addKeyValue}
+            className="text-xs text-primary hover:text-primary/80 transition-colors"
+          >
+            + Add
+          </button>
         </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Primary CTA Link</label>
-          <input
-            type="text"
-            value={content.ctaPrimaryHref}
-            onChange={e =>
-              onChange({ ...content, ctaPrimaryHref: e.target.value })
-            }
-            className={inputClasses}
-          />
-        </div>
-      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Secondary CTA Label</label>
-          <input
-            type="text"
-            value={content.ctaSecondaryLabel}
-            onChange={e =>
-              onChange({ ...content, ctaSecondaryLabel: e.target.value })
-            }
-            className={inputClasses}
-          />
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Secondary CTA Link</label>
-          <input
-            type="text"
-            value={content.ctaSecondaryHref}
-            onChange={e =>
-              onChange({ ...content, ctaSecondaryHref: e.target.value })
-            }
-            className={inputClasses}
-          />
-        </div>
+        {keyValues.map((kv, idx) => (
+          <div key={idx} className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border border-border rounded-lg bg-subtle relative">
+            <button
+              type="button"
+              onClick={() => removeKeyValue(idx)}
+              className="absolute top-2 right-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              ✕
+            </button>
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground">Title</label>
+              <input
+                type="text"
+                value={kv.title}
+                onChange={e => updateKeyValue(idx, 'title', e.target.value)}
+                className={inputClasses}
+                placeholder="e.g. Human connection"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground">Description</label>
+              <input
+                type="text"
+                value={kv.description}
+                onChange={e => updateKeyValue(idx, 'description', e.target.value)}
+                className={inputClasses}
+                placeholder="e.g. The prerequisite to everything else."
+              />
+            </div>
+          </div>
+        ))}
       </div>
 
       <div className="flex justify-end pt-4">
