@@ -17,30 +17,21 @@
     "Footer": "../../src/components/Footer.tsx",
     "LoadingFallback": "../../src/components/LoadingFallback.tsx",
     "LocaleSwitcher": "../../src/components/LocaleSwitcher.tsx",
-    "ArtistCard": "../../src/app/[locale]/page.tsx",
-    "Home": "../../src/app/[locale]/page.tsx",
-    "Bio": "../../src/app/[locale]/bio/page.tsx"
+    "Home": "../../src/components/home/HomeView.tsx"
   },
   "dtsPropsFor": {
     "Navbar": "  /** This component takes no props. */",
     "Footer": "  /** This component takes no props. */",
     "LoadingFallback": "  /** This component takes no props. */",
     "LocaleSwitcher": "  /** This component takes no props. */",
-    "Home": "  /** This component takes no props. */",
-    "Bio": "  /** This component takes no props. */",
-    "ArtistCard": "  artist: { name: string; description: string; roles: string[]; image: string; spotify_id?: string; spotify_url?: string };"
+    "Home": "  content: HomePageContent;\n  locale: 'en' | 'fr';"
   },
   "docsDir": "../docs",
   "libOverrides": {
-    "source-kit.mjs": "Next app-router paths are routes, not design groups \u2014 force general under app/ so doc category applies"
+    "source-kit.mjs": "Next app-router paths are routes, not design groups — force general under app/ so doc category applies"
   },
   "overrides": {
     "Home": {
-      "cardMode": "single",
-      "primaryStory": "Screen",
-      "viewport": "1280x900"
-    },
-    "Bio": {
       "cardMode": "single",
       "primaryStory": "Screen",
       "viewport": "1280x900"

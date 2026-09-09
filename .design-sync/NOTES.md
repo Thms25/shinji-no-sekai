@@ -24,8 +24,16 @@ imports bare `ts-morph`; the symlink is gitignored, so it must be recreated per 
 
 ## Scope: public static site only
 
-Synced components are **Navbar, Footer, LocaleSwitcher, LoadingFallback, ArtistCard, Home,
-Bio** (7). The admin console and the authenticated artist portal (Login, Dashboard,
+Synced components are **Navbar, Footer, LocaleSwitcher, LoadingFallback, Home** (5).
+`ArtistCard` and `Bio` were removed by the Soft Overlap redesign: the bio route was folded
+into the single page and the work card now lives inside `HomeView`. `Home` is no longer the
+route — the route is a server component that reads MongoDB, so the bundle exports
+`src/components/home/HomeView.tsx` (which takes `content` + `locale` props) along with
+`DEFAULT_HOME_CONTENT`.
+
+**The bundled fonts under `.design-sync/fonts/` are stale.** The redesign moved the site
+from Jost / Lora / DM Sans to Instrument Serif / Zen Kaku Gothic New / JetBrains Mono; the
+build below must be re-run to refresh `fonts.css` and the woff2 files. The admin console and the authenticated artist portal (Login, Dashboard,
 TrackList, WaveformPlayer, CommentList, AddCommentModal, AddVersionModal,
 CommentThreadModal, Breadcrumb, and the 10 admin components) were removed at the user's
 request — the site is treated as static.

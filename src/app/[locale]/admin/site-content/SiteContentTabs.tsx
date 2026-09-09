@@ -11,7 +11,7 @@ type SiteContentTabsProps = {
 
 export function SiteContentTabs({ activeTab, onTabChange }: SiteContentTabsProps) {
   return (
-    <div className="mb-6 flex flex-wrap gap-2 border-b border-white/10 pb-1">
+    <div className="mb-6 flex flex-wrap gap-2 border-b border-border pb-1">
       {TAB_LABELS.map(([tab, label]) => (
         <button
           key={tab}

@@ -2,16 +2,24 @@
 category: Pages
 ---
 
-The public single-page site: hero, bio, work grid and contact form.
+The public single-page site — "Soft Overlap": hero, about, principles, studio work,
+the room, live work and contact, as rounded panels that overlap each other.
 
-The entire marketing site in one scrolling composition:
-
-1. **Hero** — `SHINJI NO SEKAI` in `font-title` at `text-5xl sm:text-7xl`, a subheadline, and a two-column key-values grid, all staggered in.
-2. **Bio** — 3:4 portrait beside two paragraphs, revealed on scroll.
-3. **Work** — responsive `ArtistCard` grid, with a "coming soon" empty state.
-4. **Contact** — name/email/message form with a `Send` submit button.
+1. **Hero** — kicker, the name in `font-title` (54px mobile / 112px desktop), role line.
+   Sticky, so every panel below slides up over it.
+2. **About** — portrait plus lead sentence and two columns of body copy, with the
+   numbered principles nested at the bottom of the same panel.
+3. **Studio work** — square credit cards, three across on desktop.
+4. **The room** — full-bleed photograph beside the setup description.
+5. **Live work** — 3:4 credit cards, four across on desktop.
+6. **Contact** — accent panel with a mailto button.
 
 ```jsx
-<Home />
+<Home content={DEFAULT_HOME_CONTENT} locale="en" />
 ```
-Fetches bio and work content from `/api/content` on mount, so without that endpoint it renders its defaults and an empty work grid. This is the best single reference for the brand's type scale, spacing and section rhythm.
+
+Purely presentational: it takes the whole page's content as a prop and picks the
+active language field by field. The route that renders it (`src/app/[locale]/page.tsx`)
+reads the editable `home` document from MongoDB and falls back to
+`DEFAULT_HOME_CONTENT` when it is missing. This is the best single reference for the
+brand's type scale, panel radii and section rhythm.

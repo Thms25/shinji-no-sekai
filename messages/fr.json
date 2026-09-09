@@ -1,40 +1,11 @@
 {
   "nav": {
-    "fr": "FR",
-    "en": "EN"
+    "about": "À propos",
+    "studio": "Studio",
+    "room": "Le studio",
+    "live": "Live"
   },
   "footer": {
-    "rights": "Tous droits réservés."
-  },
-  "home": {
-    "headline": "SHINJI NO SEKAI",
-    "subheadline": "Ingénieur du son & designer sonore basé à Bruxelles. Créateur d'expériences sonores immersives.",
-    "keyValues": [
-      { "title": "Connexion humaine", "description": "Le prérequis à tout le reste." },
-      { "title": "La vision d'abord", "description": "Comprendre l'histoire avant de toucher au son." },
-      { "title": "Engagement total", "description": "Chaque projet est le seul qui compte." },
-      { "title": "Confiance méritée", "description": "Construite lentement, session après session." }
-    ]
-  },
-  "bio": {
-    "title": "Shinji No Sekai",
-    "paragraph1": "Je suis ingénieur du son, passionné par la recherche du son parfait. Mon parcours a débuté à l'ère analogique et a évolué vers le numérique, alliant techniques classiques et innovation moderne.",
-    "paragraph2": "Basé à Bruxelles, je travaille avec des artistes du monde entier pour donner vie à leurs visions soniques. Du mixage au mastering en passant par la production complète, je traite chaque projet avec la précision et la passion qu'il mérite."
-  },
-  "work": {
-    "heading": "Travaux sélectionnés",
-    "comingSoon": "Projets à venir. Revenez bientôt.",
-    "listenOnSpotify": "Écouter sur Spotify"
-  },
-  "contact": {
-    "heading": "Contactez-moi",
-    "subtext": "Prêt à démarrer votre prochain projet ? Envoyez-moi un message.",
-    "nameLabel": "Nom",
-    "namePlaceholder": "Votre nom",
-    "emailLabel": "Email",
-    "emailPlaceholder": "votre@email.com",
-    "messageLabel": "Message",
-    "messagePlaceholder": "Parlez-moi de votre projet...",
-    "sendButton": "Envoyer"
+    "location": "Bruxelles, Belgique"
   }
 }

@@ -6,10 +6,9 @@ export default function Footer() {
   const t = useTranslations('footer')
 
   return (
-    <footer className="w-full py-6 border-t border-white/10 bg-background text-center text-sm text-muted-foreground">
-      <div className="max-w-7xl mx-auto px-4">
-        <p>© {new Date().getFullYear()} Shinji No Sekai. {t('rights')}</p>
-      </div>
+    <footer className="font-caption flex items-center justify-between px-6.5 pt-5 pb-8 text-[11px] uppercase tracking-[.2em] text-secondary lg:px-11">
+      <span>© {new Date().getFullYear()} Shinji No Sekai</span>
+      <span>{t('location')}</span>
     </footer>
   )
 }

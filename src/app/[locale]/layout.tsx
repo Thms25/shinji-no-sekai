@@ -3,6 +3,7 @@ import { getMessages } from 'next-intl/server'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import { AuthProvider } from '@/contexts/AuthContext'
+import { SmoothScrollProvider } from '@/components/SmoothScrollProvider'
 
 export default async function LocaleLayout({
   children,
@@ -17,11 +18,13 @@ export default async function LocaleLayout({
   return (
     <NextIntlClientProvider messages={messages}>
       <AuthProvider>
-        <Navbar />
-        <main className="grow" suppressHydrationWarning>
-          {children}
-        </main>
-        <Footer />
+        <SmoothScrollProvider>
+          <Navbar />
+          <main className="grow" suppressHydrationWarning>
+            {children}
+          </main>
+          <Footer />
+        </SmoothScrollProvider>
       </AuthProvider>
     </NextIntlClientProvider>
   )

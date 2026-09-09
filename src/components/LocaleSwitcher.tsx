@@ -5,11 +5,11 @@ import { useRouter, usePathname } from '@/i18n/navigation'
 import { useTransition } from 'react'
 
 const LOCALES = [
-  { code: 'fr', label: 'FR' },
   { code: 'en', label: 'EN' },
+  { code: 'fr', label: 'FR' },
 ] as const
 
-type LocaleCode = 'fr' | 'en'
+type LocaleCode = (typeof LOCALES)[number]['code']
 
 export function LocaleSwitcher() {
   const locale = useLocale()
@@ -25,24 +25,26 @@ export function LocaleSwitcher() {
   }
 
   return (
-    <div className="flex items-center font-caption text-sm tracking-widest">
-      {LOCALES.map(({ code, label }, i) => (
-        <span key={code} className="flex items-center">
-          {i > 0 && <span className="mx-2 text-border select-none">·</span>}
+    <div className="font-caption flex items-center gap-1.5">
+      {LOCALES.map(({ code, label }) => {
+        const isActive = locale === code
+        return (
           <button
+            key={code}
             onClick={() => handleSwitch(code)}
             disabled={isPending}
-            className={`transition-colors duration-150 ${
-              locale === code
-                ? 'text-foreground font-semibold'
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
+            aria-current={isActive ? 'true' : undefined}
             aria-label={`Switch to ${label}`}
+            className={`rounded-full px-3 py-1.5 text-[10px] tracking-[.18em] transition-colors duration-400 ${
+              isActive
+                ? 'bg-primary text-foreground'
+                : 'bg-transparent text-secondary hover:text-foreground'
+            }`}
           >
             {label}
           </button>
-        </span>
-      ))}
+        )
+      })}
     </div>
   )
 }

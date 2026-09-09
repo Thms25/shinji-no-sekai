@@ -2,85 +2,124 @@
 
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { ChevronLeft } from 'lucide-react'
-import type {
-  HomePageContent,
-  BioPageContent,
-} from '@/utils/db/content'
+import { ChevronLeft, ExternalLink } from 'lucide-react'
+import type { HomePageContent, LegacyContent } from '@/utils/db/content'
 import {
   type TabId,
   DEFAULT_HOME_CONTENT,
-  DEFAULT_BIO_CONTENT,
+  migrateLegacyHome,
+  normalizeHomeContent,
+  type SiteLocale,
 } from './content-defaults'
 import { SiteContentTabs } from './SiteContentTabs'
-import { HomeContentForm } from './HomeContentForm'
-import { BioContentForm } from './BioContentForm'
+import { LocaleToggle } from './fields'
+import { buttonClasses } from './form-styles'
+import {
+  AboutForm,
+  CtaForm,
+  HeroForm,
+  LiveForm,
+  PrinciplesForm,
+  RoomForm,
+  StudioForm,
+} from './sections'
+
+async function fetchContent(page: string): Promise<unknown> {
+  const res = await fetch(`/api/content?page=${page}`, { cache: 'no-store' })
+  if (!res.ok) return null
+  const data = await res.json()
+  return data.content ?? null
+}
 
 export default function SiteContentAdmin() {
   const { user, loading, role } = useAuth()
   const router = useRouter()
 
-  const [activeTab, setActiveTab] = useState<TabId>('home')
-  const [homeContent, setHomeContent] = useState<HomePageContent>(DEFAULT_HOME_CONTENT)
-  const [bioContent, setBioContent] = useState<BioPageContent>(DEFAULT_BIO_CONTENT)
+  const [activeTab, setActiveTab] = useState<TabId>('hero')
+  const [editLocale, setEditLocale] = useState<SiteLocale>('en')
+  const [content, setContent] = useState<HomePageContent>(DEFAULT_HOME_CONTENT)
   const [loadingContent, setLoadingContent] = useState(true)
+  const [migrated, setMigrated] = useState(false)
+  const [dirty, setDirty] = useState(false)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
 
-  useEffect(() => {
-    if (!loading) {
-      if (!user) {
-        router.push('/login')
-      } else if (role !== 'admin') {
-        router.push('/dashboard')
-      } else {
-        const fetchContent = async () => {
-          try {
-            const [homeRes, bioRes] = await Promise.all([
-              fetch('/api/content?page=home'),
-              fetch('/api/content?page=bio'),
-            ])
-
-            if (homeRes.ok) {
-              const data = await homeRes.json()
-              if (data.content) setHomeContent({ ...DEFAULT_HOME_CONTENT, ...data.content })
-            }
-            if (bioRes.ok) {
-              const data = await bioRes.json()
-              if (data.content) setBioContent({ ...DEFAULT_BIO_CONTENT, ...data.content })
-            }
-          } catch (err) {
-            console.error('Error fetching site content:', err)
-          } finally {
-            setLoadingContent(false)
-          }
-        }
-        fetchContent()
-      }
-    }
-  }, [user, loading, role, router])
-
-  const showMessage = (text: string) => {
+  const showMessage = useCallback((text: string) => {
     setMessage(text)
     setTimeout(() => setMessage(null), 3000)
+  }, [])
+
+  useEffect(() => {
+    if (loading) return
+    if (!user) {
+      router.push('/login')
+      return
+    }
+    if (role !== 'admin') {
+      router.push('/dashboard')
+      return
+    }
+
+    const load = async () => {
+      try {
+        const home = await fetchContent('home')
+
+        // Nothing saved in the new shape yet — pull whatever the pre-redesign
+        // documents hold so the editor opens on the real content, not the
+        // defaults. It only becomes live once the admin saves.
+        if (!home || typeof home !== 'object' || !('hero' in home)) {
+          const [work, bio, contact] = await Promise.all([
+            fetchContent('work'),
+            fetchContent('bio'),
+            fetchContent('contact'),
+          ])
+          const legacy: LegacyContent = {
+            home: (home as LegacyContent['home']) ?? undefined,
+            work: (work as LegacyContent['work']) ?? undefined,
+            bio: (bio as LegacyContent['bio']) ?? undefined,
+            contact: (contact as LegacyContent['contact']) ?? undefined,
+          }
+          const patch = migrateLegacyHome(legacy)
+          if (Object.keys(patch).length > 0) {
+            setContent(normalizeHomeContent({ ...DEFAULT_HOME_CONTENT, ...patch }))
+            setMigrated(true)
+            // Carried-over content is not persisted yet, so enable the save button.
+            setDirty(true)
+          }
+        } else {
+          setContent(normalizeHomeContent(home))
+        }
+      } catch (err) {
+        console.error('Error fetching site content:', err)
+        showMessage('Could not load saved content — showing defaults')
+      } finally {
+        setLoadingContent(false)
+      }
+    }
+
+    load()
+  }, [user, loading, role, router, showMessage])
+
+  const update = <K extends keyof HomePageContent>(key: K, value: HomePageContent[K]) => {
+    setContent(current => ({ ...current, [key]: value }))
+    setDirty(true)
   }
 
-  const savePage = async (
-    page: TabId,
-    content: HomePageContent | BioPageContent,
-  ) => {
+  const save = async () => {
     setSaving(true)
     try {
       const res = await fetch('/api/content', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ page, content }),
+        body: JSON.stringify({ page: 'home', content }),
       })
       if (!res.ok) throw new Error('Failed to save')
-      showMessage(`${page === 'home' ? 'Home' : 'Bio'} page content saved`)
+      setDirty(false)
+      setMigrated(false)
+      showMessage('Site content saved')
     } catch (err) {
       console.error(err)
       showMessage('Error saving content')
@@ -93,50 +132,114 @@ export default function SiteContentAdmin() {
     return null
   }
 
+  const sectionProps = { locale: editLocale, onError: showMessage }
+
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
       <Link
         href="/admin"
-        className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
+        className="mb-6 inline-flex items-center text-sm text-muted-foreground transition-colors hover:text-foreground"
       >
         <ChevronLeft size={16} className="mr-1" /> Back to Dashboard
       </Link>
 
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">Site Content Editor</h1>
-        <p className="text-muted-foreground mt-1">
-          Edit the public-facing content for the home and bio pages.
-        </p>
+      <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="font-title text-3xl tracking-tight">Site Content Editor</h1>
+          <p className="mt-1 text-muted-foreground">
+            Every section of the public page, in both languages.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <Link
+            href="/"
+            target="_blank"
+            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            View site <ExternalLink size={14} />
+          </Link>
+          <LocaleToggle locale={editLocale} onChange={setEditLocale} />
+        </div>
       </div>
+
+      {migrated && (
+        <div className="mb-6 rounded-lg border border-primary/40 bg-primary/10 px-4 py-3 text-sm">
+          Content from the previous site structure has been carried over into this
+          editor, copied into both languages. Review it and press save to publish.
+        </div>
+      )}
 
       <SiteContentTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
       {loadingContent ? (
-        <div className="text-muted-foreground text-sm">Loading content…</div>
+        <div className="text-sm text-muted-foreground">Loading content…</div>
       ) : (
         <>
-          {activeTab === 'home' && (
-            <HomeContentForm
-              content={homeContent}
-              onChange={setHomeContent}
-              onSave={() => savePage('home', homeContent)}
-              saving={saving}
+          {activeTab === 'hero' && (
+            <HeroForm
+              {...sectionProps}
+              value={content.hero}
+              onChange={value => update('hero', value)}
             />
           )}
-          {activeTab === 'bio' && (
-            <BioContentForm
-              content={bioContent}
-              onChange={setBioContent}
-              onSave={() => savePage('bio', bioContent)}
-              saving={saving}
-              showMessage={showMessage}
+          {activeTab === 'about' && (
+            <AboutForm
+              {...sectionProps}
+              value={content.about}
+              onChange={value => update('about', value)}
             />
           )}
+          {activeTab === 'principles' && (
+            <PrinciplesForm
+              {...sectionProps}
+              value={content.principles}
+              onChange={value => update('principles', value)}
+            />
+          )}
+          {activeTab === 'studio' && (
+            <StudioForm
+              {...sectionProps}
+              value={content.studio}
+              onChange={value => update('studio', value)}
+            />
+          )}
+          {activeTab === 'room' && (
+            <RoomForm
+              {...sectionProps}
+              value={content.room}
+              onChange={value => update('room', value)}
+            />
+          )}
+          {activeTab === 'live' && (
+            <LiveForm
+              {...sectionProps}
+              value={content.live}
+              onChange={value => update('live', value)}
+            />
+          )}
+          {activeTab === 'cta' && (
+            <CtaForm
+              {...sectionProps}
+              value={content.cta}
+              onChange={value => update('cta', value)}
+            />
+          )}
+
+          {/* One document, one save — every tab writes the same `home` record. */}
+          <div className="sticky bottom-0 mt-10 flex items-center justify-end gap-4 border-t border-border bg-background/90 py-4 backdrop-blur">
+            <span className="text-sm text-muted-foreground">
+              {dirty ? 'Unsaved changes' : 'All changes saved'}
+            </span>
+            <button onClick={save} disabled={saving || !dirty} className={buttonClasses}>
+              {saving ? 'Saving…' : 'Save site content'}
+            </button>
+          </div>
         </>
       )}
 
       {message && (
-        <div className="fixed bottom-6 right-6 bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-sm">
+        <div className="fixed bottom-6 right-6 rounded-lg border border-border bg-card px-4 py-2 text-sm shadow-lg">
           {message}
         </div>
       )}

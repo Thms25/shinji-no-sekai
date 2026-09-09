@@ -2,10 +2,18 @@ import { NextRequest, NextResponse } from 'next/server'
 import jwt from 'jsonwebtoken'
 import {
   getPageContent,
+  getLegacyPageContent,
   upsertPageContent,
   type SitePageId,
+  type LegacySitePageId,
   type SitePageContent,
 } from '@/utils/db/content'
+
+const LEGACY_PAGES: LegacySitePageId[] = ['work', 'bio', 'contact']
+
+function isLegacyPage(page: string): page is LegacySitePageId {
+  return (LEGACY_PAGES as string[]).includes(page)
+}
 
 const JWT_SECRET = process.env.JWT_SECRET
 
@@ -34,7 +42,7 @@ function getUserFromRequest(req: NextRequest): JwtPayload | null {
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
-  const pageParam = searchParams.get('page') as SitePageId | null
+  const pageParam = searchParams.get('page')
 
   if (!pageParam) {
     return NextResponse.json(
@@ -43,11 +51,21 @@ export async function GET(req: NextRequest) {
     )
   }
 
-  const doc = await getPageContent(pageParam)
+  // Pre-redesign documents stay readable so the admin editor can migrate them.
+  if (isLegacyPage(pageParam)) {
+    const content = await getLegacyPageContent(pageParam)
+    return NextResponse.json({ page: pageParam, content, updatedAt: null }, { status: 200 })
+  }
+
+  if (pageParam !== 'home') {
+    return NextResponse.json({ error: `Unknown page "${pageParam}".` }, { status: 400 })
+  }
+
+  const doc = await getPageContent('home')
 
   return NextResponse.json(
     {
-      page: pageParam,
+      page: 'home',
       content: doc?.content ?? null,
       updatedAt: doc?.updatedAt ?? null,
     },
@@ -78,6 +96,13 @@ export async function POST(req: NextRequest) {
   if (!page || !content) {
     return NextResponse.json(
       { error: 'Missing required fields "page" and/or "content".' },
+      { status: 400 },
+    )
+  }
+
+  if (page !== 'home') {
+    return NextResponse.json(
+      { error: 'Only the "home" document is writable.' },
       { status: 400 },
     )
   }
