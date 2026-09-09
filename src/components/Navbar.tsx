@@ -34,6 +34,15 @@ export default function Navbar() {
       >
         <Link
           href="/"
+          onClick={event => {
+            // Already home: scroll back to the top instead of re-navigating, so the
+            // brand behaves like the section links beside it. Elsewhere it stays a
+            // normal link back to the site.
+            if (!isHome) return
+            if (event.metaKey || event.ctrlKey || event.shiftKey) return
+            event.preventDefault()
+            scrollTo(0)
+          }}
           className="font-title text-[19px] tracking-[-.01em] transition-opacity hover:opacity-60 lg:text-[22px]"
         >
           Shinji No Sekai

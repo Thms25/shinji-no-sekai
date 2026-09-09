@@ -40,19 +40,26 @@ const ANCHOR_DURATION = 1.6
  */
 const ANCHOR_OFFSET = 96
 
+/** A `#id`, an element, or an absolute scroll position in pixels (0 for the top). */
+type ScrollTarget = string | HTMLElement | number
+
 type SmoothScrollValue = {
-  /** Scrolls to a `#id` or element. Falls back to native scrolling when damping is off. */
-  scrollTo: (target: string | HTMLElement) => void
+  /** Scrolls to a target. Falls back to native scrolling when damping is off. */
+  scrollTo: (target: ScrollTarget) => void
 }
 
-function nativeScrollTo(target: string | HTMLElement) {
+function nativeScrollTo(target: ScrollTarget, behavior: ScrollBehavior = 'smooth') {
+  if (typeof target === 'number') {
+    window.scrollTo({ top: target, behavior })
+    return
+  }
   const el =
     typeof target === 'string' ? document.querySelector<HTMLElement>(target) : target
-  el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  el?.scrollIntoView({ behavior, block: 'start' })
 }
 
 const SmoothScrollContext = createContext<SmoothScrollValue>({
-  scrollTo: nativeScrollTo,
+  scrollTo: target => nativeScrollTo(target),
 })
 
 export function useSmoothScroll() {
@@ -99,16 +106,24 @@ export function SmoothScrollProvider({ children }: { children: ReactNode }) {
     }
   }, [enabled])
 
-  const scrollTo = useCallback((target: string | HTMLElement) => {
-    const lenis = lenisRef.current
-    if (!lenis) {
-      nativeScrollTo(target)
-      return
-    }
-    // Slower than a wheel glide — an intentional jump across the page reads better
-    // when it takes its time.
-    lenis.scrollTo(target, { offset: -ANCHOR_OFFSET, duration: ANCHOR_DURATION })
-  }, [])
+  const scrollTo = useCallback(
+    (target: ScrollTarget) => {
+      const lenis = lenisRef.current
+      if (!lenis) {
+        nativeScrollTo(target, reduceMotion ? 'auto' : 'smooth')
+        return
+      }
+      // Slower than a wheel glide — an intentional jump across the page reads better
+      // when it takes its time.
+      lenis.scrollTo(target, {
+        // A number is an absolute position; the navbar offset only makes sense
+        // when aiming at an element that has a heading to keep clear.
+        offset: typeof target === 'number' ? 0 : -ANCHOR_OFFSET,
+        duration: ANCHOR_DURATION,
+      })
+    },
+    [reduceMotion],
+  )
 
   return (
     <SmoothScrollContext.Provider value={{ scrollTo }}>
