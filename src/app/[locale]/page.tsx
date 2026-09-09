@@ -15,7 +15,7 @@ function getSpotifyArtistId(artist: WorkArtist): string | null {
   return m ? m[1] : null
 }
 
-function ArtistCard({ artist }: { artist: WorkArtist }) {
+export function ArtistCard({ artist }: { artist: WorkArtist }) {
   const t = useTranslations('work')
   const spotifyLink =
     artist.spotify_url ||

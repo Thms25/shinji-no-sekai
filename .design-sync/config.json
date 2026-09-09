@@ -1,0 +1,50 @@
+{
+  "projectId": "93de6e4c-5feb-41db-8f1c-95ae6ff14f3e",
+  "shape": "package",
+  "pkg": "shinji-no-sekai",
+  "globalName": "ShinjiNoSekai",
+  "srcDir": "../../src",
+  "tsconfig": "../tsconfig.ds.json",
+  "cssEntry": "compiled.css",
+  "extraFonts": [
+    "../fonts/fonts.css"
+  ],
+  "provider": {
+    "component": "DsProvider"
+  },
+  "componentSrcMap": {
+    "Navbar": "../../src/components/Navbar.tsx",
+    "Footer": "../../src/components/Footer.tsx",
+    "LoadingFallback": "../../src/components/LoadingFallback.tsx",
+    "LocaleSwitcher": "../../src/components/LocaleSwitcher.tsx",
+    "ArtistCard": "../../src/app/[locale]/page.tsx",
+    "Home": "../../src/app/[locale]/page.tsx",
+    "Bio": "../../src/app/[locale]/bio/page.tsx"
+  },
+  "dtsPropsFor": {
+    "Navbar": "  /** This component takes no props. */",
+    "Footer": "  /** This component takes no props. */",
+    "LoadingFallback": "  /** This component takes no props. */",
+    "LocaleSwitcher": "  /** This component takes no props. */",
+    "Home": "  /** This component takes no props. */",
+    "Bio": "  /** This component takes no props. */",
+    "ArtistCard": "  artist: { name: string; description: string; roles: string[]; image: string; spotify_id?: string; spotify_url?: string };"
+  },
+  "docsDir": "../docs",
+  "libOverrides": {
+    "source-kit.mjs": "Next app-router paths are routes, not design groups \u2014 force general under app/ so doc category applies"
+  },
+  "overrides": {
+    "Home": {
+      "cardMode": "single",
+      "primaryStory": "Screen",
+      "viewport": "1280x900"
+    },
+    "Bio": {
+      "cardMode": "single",
+      "primaryStory": "Screen",
+      "viewport": "1280x900"
+    }
+  },
+  "readmeHeader": ".design-sync/conventions.md"
+}
