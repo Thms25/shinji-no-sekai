@@ -10,22 +10,42 @@
   --color-border:           #E2CEB4;
   --color-subtle:           #F5EDE0;
   --color-tag:              #BFC4B2;
+  /* Long-form body copy — softer than --color-foreground so paragraphs recede. */
+  --color-prose:            #7A6450;
+  /* Text sitting on the accent panel. */
+  --color-on-accent:        #4A3826;
 }
 
 @theme inline {
-  /* Lora — warm serif, default body/primary text */
-  --font-sans: var(--font-lora);
+  /* Zen Kaku Gothic New — body copy */
+  --font-sans: var(--font-zen-kaku);
 }
 
 @layer utilities {
-  /* Jost — geometric sans, titles & headings */
+  /* Instrument Serif — display headings and names */
   .font-title {
-    font-family: var(--font-jost, 'Jost', sans-serif);
+    font-family: var(--font-instrument-serif, 'Instrument Serif', serif);
   }
-  /* DM Sans — clean humanist sans, subtitles, captions, labels, UI */
+  /* JetBrains Mono — kickers, labels, years, UI captions */
   .font-caption {
-    font-family: var(--font-dm-sans, 'DM Sans', sans-serif);
+    font-family: var(--font-jetbrains-mono, 'JetBrains Mono', monospace);
   }
+}
+
+/* Lenis (damped scrolling on the public page). Kept inline rather than importing
+   the package stylesheet so all global CSS stays in one file. The classes are added
+   to <html> by Lenis itself and disappear when it is destroyed. */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis:not(.lenis-autoToggle).lenis-stopped {
+  overflow: clip;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
 }
 
 /* Loading fallback - equalizer bar animation */

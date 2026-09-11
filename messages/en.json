@@ -1,0 +1,11 @@
+{
+  "nav": {
+    "about": "About",
+    "studio": "Studio",
+    "room": "Room",
+    "live": "Live"
+  },
+  "footer": {
+    "location": "Brussels, Belgium"
+  }
+}

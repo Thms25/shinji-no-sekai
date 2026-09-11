@@ -1,0 +1,25 @@
+/* design-sync Tailwind entry.
+   Imports the app's real globals.css (single source of truth for @theme tokens and
+   custom utilities), then widens source detection to the whole src/ tree plus the
+   authored preview files — Tailwind v4 would otherwise only scan next to globals.css. */
+@import "../src/app/globals.css";
+
+@source "../src/**/*.{ts,tsx}";
+@source "./previews/**/*.tsx";
+
+/* next/font injects these three variables in the app (src/app/layout.tsx). The design
+   system has no Next runtime, so declare them against the self-hosted families — without
+   them --font-sans, .font-title and .font-caption all resolve to nothing. */
+:root {
+  --font-jost: 'Jost', sans-serif;
+  --font-lora: 'Lora', serif;
+  --font-dm-sans: 'DM Sans', sans-serif;
+}
+
+/* The app applies these on <body> in src/app/layout.tsx; designs need the same baseline. */
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
