@@ -13,7 +13,6 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "paths": {
-      "@/utils/actions/*": ["./stubs/actions/*"],
       "@/*": ["../src/*"]
     }
   }
