@@ -22,6 +22,15 @@ Fresh clone also needs: `npm ci`, `(cd .ds-sync && npm i esbuild ts-morph @types
 and `ln -sfn ../.ds-sync/node_modules .design-sync/node_modules` (the overrides fork
 imports bare `ts-morph`; the symlink is gitignored, so it must be recreated per clone).
 
+## The artist portal is gone
+
+The authenticated artist portal and artist management were removed from the repo
+entirely (not just from the sync): `/dashboard`, `/admin/artist`, `/admin/upload`, the
+track/comment/version components and their `utils/db` + `utils/actions` modules. `/admin`
+is now the site content editor itself, and `/login` exists only to reach it. The
+`@/utils/actions/*` -> `stubs/actions/*` path alias in `tsconfig.ds.json` and the stubs it
+pointed at went with them.
+
 ## Scope: public static site only
 
 Synced components are **Navbar, Footer, LocaleSwitcher, LoadingFallback, Home** (5).

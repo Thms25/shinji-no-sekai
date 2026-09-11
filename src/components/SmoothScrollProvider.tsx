@@ -17,12 +17,12 @@ import {
  * WHEEL_LERP      How fast the page catches up to where your wheel asked it to go.
  *                 Lower = longer, floatier glide. Higher = tighter, closer to native.
  *                 1 would be no damping at all; Lenis's own default is 0.1.
- *                 Native-ish 0.14 · current 0.075 · very floaty 0.05
+ *                 Native-ish 0.14 · current 0.085 · very floaty 0.05
  *
  * WHEEL_MULTIPLIER  How much ground one wheel tick covers, relative to the browser.
  *                 This is the "is it slower?" knob — WHEEL_LERP only changes the
  *                 easing, not the distance travelled.
- *                 Native 1 · current 0.85 · noticeably slower 0.7
+ *                 Native 1 · current 0.9 · noticeably slower 0.7
  *
  * ANCHOR_DURATION  Seconds for a navbar click to travel to its section, regardless
  *                 of distance. Snappy 1.0 · current 1.6 · stately 2.2
@@ -30,8 +30,8 @@ import {
  * Somewhere between "before" (WHEEL_LERP 1, WHEEL_MULTIPLIER 1) and now is roughly
  * WHEEL_LERP 0.1 with WHEEL_MULTIPLIER 0.95.
  */
-const WHEEL_LERP = 0.075
-const WHEEL_MULTIPLIER = 0.85
+const WHEEL_LERP = 0.085
+const WHEEL_MULTIPLIER = 0.9
 const ANCHOR_DURATION = 1.6
 
 /**
@@ -48,13 +48,18 @@ type SmoothScrollValue = {
   scrollTo: (target: ScrollTarget) => void
 }
 
-function nativeScrollTo(target: ScrollTarget, behavior: ScrollBehavior = 'smooth') {
+function nativeScrollTo(
+  target: ScrollTarget,
+  behavior: ScrollBehavior = 'smooth',
+) {
   if (typeof target === 'number') {
     window.scrollTo({ top: target, behavior })
     return
   }
   const el =
-    typeof target === 'string' ? document.querySelector<HTMLElement>(target) : target
+    typeof target === 'string'
+      ? document.querySelector<HTMLElement>(target)
+      : target
   el?.scrollIntoView({ behavior, block: 'start' })
 }
 

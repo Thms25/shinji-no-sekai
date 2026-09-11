@@ -39,7 +39,7 @@ export default function Login() {
 
       // Ensure the auth context is up to date before navigating
       await refreshUser()
-      router.push('/dashboard')
+      router.push('/admin')
     } catch (err) {
       setError('Failed to login. Please check your credentials.')
       console.error(err)
@@ -53,15 +53,15 @@ export default function Login() {
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="w-full max-w-md space-y-8 bg-white/5 p-8 rounded-2xl border border-white/10"
+        className="w-full max-w-md space-y-8 bg-card/60 p-8 rounded-2xl border border-border"
       >
         <div className="text-center">
-          <div className="mx-auto w-12 h-12 bg-white/10 rounded-full flex items-center justify-center mb-4">
+          <div className="mx-auto w-12 h-12 bg-subtle border border-border rounded-full flex items-center justify-center mb-4">
             <Lock className="text-primary" size={24} />
           </div>
-          <h2 className="text-3xl font-bold tracking-tight">Artist Login</h2>
+          <h2 className="font-title text-3xl tracking-tight">Admin Login</h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Access your private tracks and mixes.
+            Sign in to edit the site content.
           </p>
         </div>
 
@@ -79,7 +79,7 @@ export default function Login() {
                 required
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                className="relative block w-full rounded-lg bg-black/20 border border-white/10 px-4 py-3 text-foreground placeholder-muted-foreground focus:z-10 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary sm:text-sm"
+                className="relative block w-full rounded-lg bg-subtle border border-border px-4 py-3 text-foreground placeholder-muted-foreground focus:z-10 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary sm:text-sm"
                 placeholder="Email address"
               />
             </div>
@@ -95,7 +95,7 @@ export default function Login() {
                 required
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                className="relative block w-full rounded-lg bg-black/20 border border-white/10 px-4 py-3 text-foreground placeholder-muted-foreground focus:z-10 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary sm:text-sm"
+                className="relative block w-full rounded-lg bg-subtle border border-border px-4 py-3 text-foreground placeholder-muted-foreground focus:z-10 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary sm:text-sm"
                 placeholder="Password"
               />
             </div>
