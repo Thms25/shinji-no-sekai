@@ -18,12 +18,15 @@ export default function Navbar() {
   const isHome = pathname === '/'
 
   return (
-    // On the single-page site the bar floats over the hero; elsewhere it sits in the
-    // flow so it can never cover the top of an admin or portal screen.
+    // Sticky rather than fixed, so the bar occupies its 52px (76px on desktop) of
+    // flow. The hero below is `sticky top-[52px]`: if the bar were out of flow the
+    // hero would start at y=0, violate that constraint and be pushed *down* 52px,
+    // eating the clearance the About panel's protruding portrait needs — which is
+    // exactly how the portrait ended up covering the role line.
     <header
       className={
         isHome
-          ? 'fixed inset-x-0 top-0 z-50 lg:px-7 lg:pt-4.5'
+          ? 'sticky top-0 z-50 lg:px-7 lg:pt-4.5'
           : 'sticky top-0 z-50 border-b border-border'
       }
     >

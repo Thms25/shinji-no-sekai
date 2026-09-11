@@ -32,6 +32,14 @@
   }
 }
 
+/* Guard, not a fix for an observed bug: the panels sit on negative margins and the
+   mono tracking runs are wide, so a very narrow viewport could in principle push
+   past the edge. `clip` rather than `hidden` is deliberate — `hidden` would make
+   this a scroll container and break the sticky hero, `clip` does not. */
+body {
+  overflow-x: clip;
+}
+
 /* Lenis (damped scrolling on the public page). Kept inline rather than importing
    the package stylesheet so all global CSS stays in one file. The classes are added
    to <html> by Lenis itself and disappear when it is destroyed. */

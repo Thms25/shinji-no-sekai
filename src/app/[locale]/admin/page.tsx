@@ -41,7 +41,10 @@ export default function SiteContentAdmin() {
   const [editLocale, setEditLocale] = useState<SiteLocale>('en')
   const [content, setContent] = useState<HomePageContent>(DEFAULT_HOME_CONTENT)
   const [loadingContent, setLoadingContent] = useState(true)
-  const [migrated, setMigrated] = useState(false)
+  // Legacy documents found in the database, offered as an explicit import rather
+  // than pre-filled — pre-filling made the editor disagree with the live site.
+  const [legacy, setLegacy] = useState<LegacyContent | null>(null)
+  const [legacyImported, setLegacyImported] = useState(false)
   const [dirty, setDirty] = useState(false)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
@@ -66,30 +69,27 @@ export default function SiteContentAdmin() {
       try {
         const home = await fetchContent('home')
 
-        // Nothing saved in the new shape yet — pull whatever the pre-redesign
-        // documents hold so the editor opens on the real content, not the
-        // defaults. It only becomes live once the admin saves.
-        if (!home || typeof home !== 'object' || !('hero' in home)) {
+        // Load exactly what the public page renders: the same normalize call over
+        // the same document. Anything else makes the editor lie about the site.
+        setContent(normalizeHomeContent(home))
+
+        // If the home document predates the redesign, its copy is not on the site
+        // (every new field falls back to the defaults). Offer that old copy as an
+        // explicit import instead of silently pre-filling the forms with it.
+        const isLegacyHome = !home || typeof home !== 'object' || !('hero' in home)
+        if (isLegacyHome) {
           const [work, bio, contact] = await Promise.all([
             fetchContent('work'),
             fetchContent('bio'),
             fetchContent('contact'),
           ])
-          const legacy: LegacyContent = {
+          const found: LegacyContent = {
             home: (home as LegacyContent['home']) ?? undefined,
             work: (work as LegacyContent['work']) ?? undefined,
             bio: (bio as LegacyContent['bio']) ?? undefined,
             contact: (contact as LegacyContent['contact']) ?? undefined,
           }
-          const patch = migrateLegacyHome(legacy)
-          if (Object.keys(patch).length > 0) {
-            setContent(normalizeHomeContent({ ...DEFAULT_HOME_CONTENT, ...patch }))
-            setMigrated(true)
-            // Carried-over content is not persisted yet, so enable the save button.
-            setDirty(true)
-          }
-        } else {
-          setContent(normalizeHomeContent(home))
+          if (Object.keys(migrateLegacyHome(found)).length > 0) setLegacy(found)
         }
       } catch (err) {
         console.error('Error fetching site content:', err)
@@ -101,6 +101,15 @@ export default function SiteContentAdmin() {
 
     load()
   }, [user, loading, role, router, showMessage])
+
+  /** Pulls the pre-redesign copy into the forms. Explicit, and reversible by reloading. */
+  const importLegacy = () => {
+    if (!legacy) return
+    setContent(current => normalizeHomeContent({ ...current, ...migrateLegacyHome(legacy) }))
+    setLegacyImported(true)
+    setDirty(true)
+    showMessage('Previous content loaded into the form — review, then save')
+  }
 
   const update = <K extends keyof HomePageContent>(key: K, value: HomePageContent[K]) => {
     setContent(current => ({ ...current, [key]: value }))
@@ -118,7 +127,6 @@ export default function SiteContentAdmin() {
       })
       if (!res.ok) throw new Error('Failed to save')
       setDirty(false)
-      setMigrated(false)
       showMessage('Site content saved')
     } catch (err) {
       console.error(err)
@@ -163,10 +171,30 @@ export default function SiteContentAdmin() {
         </div>
       </div>
 
-      {migrated && (
+      {legacy && !legacyImported && (
+        <div className="mb-6 rounded-lg border border-border bg-card/60 px-4 py-3 text-sm">
+          <p className="font-medium">Content from the previous site is still stored.</p>
+          <p className="mt-1 text-muted-foreground">
+            It is not on the site — the redesign added new sections, so the live page
+            is showing its built-in copy. The forms below show exactly what visitors
+            see right now. You can pull the old copy in to work from instead, which
+            replaces the fields below (nothing is saved until you press save).
+          </p>
+          <button
+            type="button"
+            onClick={importLegacy}
+            className="mt-3 inline-flex items-center rounded-lg border border-border bg-subtle px-3 py-1.5 text-sm font-medium transition-colors hover:bg-card"
+          >
+            Load previous content into the form
+          </button>
+        </div>
+      )}
+
+      {legacyImported && (
         <div className="mb-6 rounded-lg border border-primary/40 bg-primary/10 px-4 py-3 text-sm">
-          Content from the previous site structure has been carried over into this
-          editor, copied into both languages. Review it and press save to publish.
+          Previous content has been loaded into the forms and copied into both
+          languages. Review it and press save to publish — or reload this page to
+          go back to what the site currently shows.
         </div>
       )}
 
