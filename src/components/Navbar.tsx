@@ -48,7 +48,7 @@ export default function Navbar() {
           }}
           className="font-title text-[19px] tracking-[-.01em] transition-opacity hover:opacity-60 lg:text-[22px]"
         >
-          Shinji No Sekai
+          Sekai Studios
         </Link>
 
         {isHome && (
