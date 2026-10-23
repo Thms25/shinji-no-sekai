@@ -9,6 +9,12 @@ import type {
 export type SiteLocale = 'en' | 'fr'
 
 /**
+ * Link-preview image: a square crop of the default About portrait (WhatsApp and
+ * iMessage show previews square). Static, so it does not follow admin uploads.
+ */
+export const SHARE_IMAGE = { url: '/images/og-portrait.jpg', width: 377, height: 377 }
+
+/**
  * Fallback copy for the whole public page. Used whenever the `home` document is
  * missing a field — on a fresh database this is exactly what the site renders, and
  * it is what the admin editor seeds its forms from.
@@ -145,6 +151,7 @@ export const DEFAULT_HOME_CONTENT: HomePageContent = {
       fr: "Envoyez deux titres. Je vous dirai honnêtement ce que j'en ferais.",
     },
     email: 'hello@sekai-studios.com',
+    instagram: 'https://www.instagram.com/shinji.no.sekai/',
   },
 }
 
@@ -258,6 +265,7 @@ export function normalizeHomeContent(raw: unknown): HomePageContent {
       title: loc(cta.title, d.cta.title),
       body: loc(cta.body, d.cta.body),
       email: str(cta.email, d.cta.email),
+      instagram: str(cta.instagram, d.cta.instagram),
     },
   }
 }

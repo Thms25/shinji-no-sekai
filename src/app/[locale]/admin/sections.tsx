@@ -329,7 +329,7 @@ export function CtaForm({ value, locale, onChange }: SectionProps<CtaContent>) {
   return (
     <div className="space-y-6">
       <SectionIntro title="Contact">
-        The closing panel. The address becomes a mailto button.
+        The closing panel. The address becomes a mailto button, with the Instagram link beside it.
       </SectionIntro>
 
       <LocalizedField
@@ -352,6 +352,14 @@ export function CtaForm({ value, locale, onChange }: SectionProps<CtaContent>) {
         value={value.email}
         onChange={email => onChange({ ...value, email })}
         placeholder="hello@sekai-studios.com"
+      />
+
+      <TextField
+        label="Instagram URL"
+        hint="Shown beside the email button — leave empty to hide it"
+        value={value.instagram}
+        onChange={instagram => onChange({ ...value, instagram })}
+        placeholder="https://www.instagram.com/shinji.no.sekai/"
       />
     </div>
   )

@@ -73,6 +73,8 @@ export interface CtaContent {
   title: Localized
   body: Localized
   email: string
+  /** Profile URL, shown beside the email button. Empty hides the link. */
+  instagram: string
 }
 
 export interface HomePageContent {
