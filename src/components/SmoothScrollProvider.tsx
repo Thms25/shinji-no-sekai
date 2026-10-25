@@ -46,6 +46,8 @@ type ScrollTarget = string | HTMLElement | number
 type SmoothScrollValue = {
   /** Scrolls to a target. Falls back to native scrolling when damping is off. */
   scrollTo: (target: ScrollTarget) => void
+  /** Freezes the page under an overlay (lightbox) and releases it again. */
+  setLocked: (locked: boolean) => void
 }
 
 function nativeScrollTo(
@@ -65,6 +67,7 @@ function nativeScrollTo(
 
 const SmoothScrollContext = createContext<SmoothScrollValue>({
   scrollTo: target => nativeScrollTo(target),
+  setLocked: () => {},
 })
 
 export function useSmoothScroll() {
@@ -130,8 +133,16 @@ export function SmoothScrollProvider({ children }: { children: ReactNode }) {
     [reduceMotion],
   )
 
+  // Lenis listens to the wheel itself, so `overflow: hidden` alone would not hold
+  // the page still — it has to be stopped too.
+  const setLocked = useCallback((locked: boolean) => {
+    document.documentElement.style.overflow = locked ? 'hidden' : ''
+    if (locked) lenisRef.current?.stop()
+    else lenisRef.current?.start()
+  }, [])
+
   return (
-    <SmoothScrollContext.Provider value={{ scrollTo }}>
+    <SmoothScrollContext.Provider value={{ scrollTo, setLocked }}>
       {children}
     </SmoothScrollContext.Provider>
   )
