@@ -85,8 +85,8 @@ export interface StudioSection {
 
 /** Editable copy of the projects page. The entries themselves live in `projects`. */
 export interface ProjectsPageContent {
-  kicker: Localized
   title: Localized
+  /** Not shown on the page: its search and share description. */
   intro: Localized
 }
 

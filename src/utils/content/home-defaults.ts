@@ -117,7 +117,6 @@ export const DEFAULT_HOME_CONTENT: HomePageContent = {
   ],
 
   projectsPage: {
-    kicker: { en: 'Journal · Studio & stage', fr: 'Journal · Studio & scène' },
     title: { en: 'Projects', fr: 'Projets' },
     intro: {
       en: "Records, tours and the sessions in between, in the order I'd tell them.",
@@ -351,7 +350,6 @@ export function normalizeHomeContent(raw: unknown): HomePageContent {
     },
     projects,
     projectsPage: {
-      kicker: loc(projectsPage.kicker, d.projectsPage.kicker),
       title: loc(projectsPage.title, d.projectsPage.title),
       intro: loc(projectsPage.intro, d.projectsPage.intro),
     },

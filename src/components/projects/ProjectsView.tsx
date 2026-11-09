@@ -1,243 +1,213 @@
 'use client'
 
-import { AnimatePresence, motion, useReducedMotion, useScroll, useSpring } from 'framer-motion'
-import { ArrowUpRight, Instagram } from 'lucide-react'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
+import { ArrowUpRight, Images, Instagram, LayoutGrid, List } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { useEffect, useRef, useState } from 'react'
-import { LightboxProvider, useLightbox, type LightboxImage } from '@/components/home/Lightbox'
+import { useCallback, useState, type CSSProperties } from 'react'
 import type { HomePageContent, Localized, ProjectItem } from '@/utils/db/content'
 import type { SiteLocale } from '@/utils/content/home-defaults'
-import { DevelopingPhoto, EASE_ENTER, ParallaxPhoto, RiseText } from './motion'
+import { EASE_ENTER, RiseText } from './motion'
+import { pad, ProjectSheet } from './ProjectSheet'
 
 type ProjectsViewProps = {
   content: HomePageContent
   locale: SiteLocale
 }
 
+type View = 'wall' | 'index'
+
 /** Shared panel chrome, the same overlapping slabs as the home page. */
 const PANEL_SHADOW =
   'shadow-[0_-16px_40px_rgba(59,47,34,.08)] lg:shadow-[0_-24px_56px_rgba(59,47,34,.1)]'
 
-const pad = (v: number) => String(v).padStart(2, '0')
+/** Covers that develop on load: about the first screen at any width. */
+const DEVELOPED = 32
 
-/* ── Photographs ──────────────────────────────────────────────────────────── */
+/** Marks a cover ready to develop, whether it loads now or was already cached. */
+function markReady(img: HTMLImageElement | null) {
+  if (img?.complete && img.naturalWidth > 0) img.dataset.ready = ''
+}
 
-function PhotoFrame({
-  gallery,
+/* ── The wall ─────────────────────────────────────────────────────────────── */
+
+function WallTile({
+  project,
   index,
-  title,
-  className,
-  extra,
-  develop = false,
+  onOpen,
+  onPoint,
 }: {
-  gallery: LightboxImage[]
+  project: ProjectItem
   index: number
-  title: string
-  className: string
-  extra?: number
-  /** The page's one developing photograph (dealt moment "picture-develops"). */
-  develop?: boolean
+  onOpen: (index: number) => void
+  onPoint: (index: number) => void
 }) {
-  const openLightbox = useLightbox()
   const t = useTranslations('projects')
+  const cover = project.images[0]
+  const develop = index < DEVELOPED
 
   return (
-    <button
-      type="button"
-      onClick={() => openLightbox(gallery[index], gallery)}
-      aria-label={t('openPhoto', { title, index: index + 1, total: gallery.length })}
-      className={`group relative block cursor-zoom-in overflow-hidden rounded-[24px] bg-border shadow-[0_14px_34px_rgba(59,47,34,.14)] lg:rounded-[30px] ${className}`}
-    >
-      <div className="absolute inset-0 transition-transform duration-[600ms] ease-[cubic-bezier(.2,.8,.2,1)] group-hover:scale-[1.03]">
-        {develop ? (
-          <DevelopingPhoto src={gallery[index].src} alt={gallery[index].alt} className="h-full w-full" />
+    <li>
+      <button
+        type="button"
+        onClick={() => onOpen(index)}
+        onMouseEnter={() => onPoint(index)}
+        onFocus={() => onPoint(index)}
+        aria-label={t('open', { title: project.title || '—' })}
+        className="wall-tile group relative block aspect-square w-full cursor-pointer overflow-hidden rounded-[8px] bg-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground lg:rounded-[12px]"
+      >
+        {cover ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            ref={develop ? markReady : undefined}
+            src={cover}
+            alt={project.title}
+            loading={develop ? 'eager' : 'lazy'}
+            decoding="async"
+            data-develop={develop ? '' : undefined}
+            onLoad={develop ? event => (event.currentTarget.dataset.ready = '') : undefined}
+            style={{ '--develop-delay': `${120 + index * 38}ms` } as CSSProperties}
+            className="wall-photo h-full w-full object-cover transition-transform duration-[600ms] ease-[cubic-bezier(.2,.8,.2,1)] group-hover:scale-[1.03]"
+          />
         ) : (
-          <ParallaxPhoto src={gallery[index].src} alt={gallery[index].alt} className="h-full w-full" />
+          <span className="font-title flex h-full items-center justify-center p-3 text-center text-[18px] leading-[1.05] text-secondary lg:text-[22px]">
+            {project.title}
+          </span>
         )}
-      </div>
-      {extra ? (
-        <span className="font-caption absolute right-3 bottom-3 rounded-full bg-background/92 px-3.5 py-2 text-[10px] tracking-[.16em] text-foreground lg:right-4 lg:bottom-4 lg:text-[11px]">
-          {t('morePhotos', { count: extra })}
-        </span>
-      ) : null}
-    </button>
+        {project.images.length > 1 && (
+          <span
+            aria-hidden
+            className="absolute top-1.5 right-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-background/90 text-foreground lg:top-2 lg:right-2 lg:h-7 lg:w-7"
+          >
+            <Images size={13} strokeWidth={1.7} />
+          </span>
+        )}
+      </button>
+    </li>
   )
 }
 
 /**
- * Several photographs: a pair, or one large frame beside two stacked (further
- * ones open from the last frame). Every other entry is mirrored.
+ * The cover under the pointer, named at the foot of the screen (desktop): the
+ * wall stays all pictures, the words come to you.
  */
-function EntryGallery({
-  images,
-  title,
-  mirrored,
+function Readout({
+  project,
+  number,
+  locale,
 }: {
-  images: string[]
-  title: string
-  mirrored: boolean
+  project: ProjectItem | null
+  number: number
+  locale: SiteLocale
 }) {
-  const gallery: LightboxImage[] = images.map((src, i) => ({ src, alt: `${title} — ${i + 1}` }))
-  const frame = (index: number, className: string, extra?: number) => (
-    <PhotoFrame gallery={gallery} index={index} title={title} className={className} extra={extra} />
-  )
+  const t = useTranslations('projects')
+  const reduceMotion = useReducedMotion()
+  const meta = project ? project.meta[locale] || project.meta.en : ''
 
-  if (images.length === 2) {
-    return (
-      <div
-        className={`grid gap-3 sm:items-stretch sm:gap-4 ${
-          mirrored ? 'sm:grid-cols-[2fr_3fr]' : 'sm:grid-cols-[3fr_2fr]'
-        }`}
-      >
-        <div className={mirrored ? 'sm:order-2' : ''}>
-          {frame(0, 'aspect-[4/3] w-full sm:aspect-auto sm:h-full')}
-        </div>
-        <div className={mirrored ? 'sm:order-1' : ''}>{frame(1, 'aspect-[4/5] w-full')}</div>
-      </div>
-    )
-  }
-
-  const extra = images.length - 3
   return (
-    <div
-      className={`grid grid-cols-2 gap-3 sm:grid-rows-2 sm:gap-4 ${
-        mirrored ? 'sm:grid-cols-[2fr_3fr]' : 'sm:grid-cols-[3fr_2fr]'
-      }`}
-    >
-      <div
-        className={`col-span-2 sm:col-span-1 sm:row-span-2 ${
-          mirrored ? 'sm:col-start-2 sm:row-start-1' : ''
-        }`}
-      >
-        {frame(0, 'aspect-[4/3] w-full sm:aspect-auto sm:h-full sm:min-h-[420px]')}
-      </div>
-      <div className={mirrored ? 'sm:col-start-1 sm:row-start-1' : ''}>
-        {frame(1, 'aspect-square w-full sm:aspect-[4/3]')}
-      </div>
-      <div className={mirrored ? 'sm:col-start-1 sm:row-start-2' : ''}>
-        {frame(2, 'aspect-square w-full sm:aspect-[4/3]', extra > 0 ? extra : undefined)}
-      </div>
+    <div aria-hidden className="pointer-events-none fixed inset-x-0 bottom-6 z-40 hidden justify-center px-6 lg:flex">
+      <AnimatePresence>
+        {project && (
+          <motion.div
+            initial={reduceMotion ? false : { opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={reduceMotion ? undefined : { opacity: 0, y: 10 }}
+            transition={{ duration: 0.3, ease: EASE_ENTER }}
+            className="flex max-w-[760px] items-center gap-4 overflow-hidden rounded-full bg-foreground py-3 pr-6 pl-3 text-background shadow-[0_18px_40px_rgba(30,22,14,.28)]"
+          >
+            <span className="font-caption shrink-0 rounded-full bg-background/12 px-3 py-1.5 text-[10px] tracking-[.2em] tabular-nums">
+              N°{pad(number)}
+            </span>
+            <AnimatePresence mode="popLayout" initial={false}>
+              <motion.span
+                key={project.id}
+                initial={reduceMotion ? false : { y: 18, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={reduceMotion ? undefined : { y: -18, opacity: 0 }}
+                transition={{ duration: 0.28, ease: EASE_ENTER }}
+                className="flex min-w-0 items-baseline gap-3"
+              >
+                <span className="font-title truncate text-[22px] leading-none">{project.title}</span>
+                {meta && <span className="truncate text-[13px] font-light text-background/65">{meta}</span>}
+                {project.images.length > 1 && (
+                  <span className="font-caption shrink-0 text-[10px] tracking-[.16em] text-background/65">
+                    {t('photos', { count: project.images.length })}
+                  </span>
+                )}
+              </motion.span>
+            </AnimatePresence>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
 
-/* ── One entry ────────────────────────────────────────────────────────────── */
+/* ── The index ────────────────────────────────────────────────────────────── */
 
-function Entry({
+function IndexRow({
   project,
-  number,
   index,
   locale,
-  first,
+  onOpen,
 }: {
   project: ProjectItem
-  number: number
   index: number
   locale: SiteLocale
-  first: boolean
+  onOpen: (index: number) => void
 }) {
-  const ui = useTranslations('projects')
-  const t = (value: Localized) => value[locale] || value.en
-  const story = t(project.story)
-  const mirrored = index % 2 === 1
-  // One photo (usually a square release cover): the words beside it. Several:
-  // the words above a gallery of their own.
-  const compact = project.images.length <= 1
-
-  const heading = (
-    <div className="grid gap-3 lg:gap-4">
-      <p className="font-caption flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] tracking-[.22em] text-secondary lg:text-[11px]">
-        <span>N°{pad(number)}</span>
-        {project.year && (
-          <>
-            <span aria-hidden className="h-px w-5 bg-border" />
-            <span>{project.year}</span>
-          </>
-        )}
-      </p>
-      <RiseText
-        as="h2"
-        className={`font-title text-[38px] leading-[1.02] tracking-[-.025em] ${
-          compact ? 'lg:text-[50px] lg:leading-none' : 'lg:text-[62px] lg:leading-[.98]'
-        }`}
-      >
-        {project.title || '—'}
-      </RiseText>
-      <p className="text-sm font-light leading-[1.55] text-secondary lg:text-base">{t(project.meta)}</p>
-    </div>
-  )
-
-  const storyBlock = story ? (
-    <p className="max-w-[600px] text-[15px] font-light leading-[1.85] whitespace-pre-line text-prose lg:text-[17px] lg:leading-[1.9]">
-      {story}
-    </p>
-  ) : null
-
-  const listen = project.url ? (
-    <a
-      href={project.url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="group font-caption inline-flex min-h-11 items-center gap-2 self-start justify-self-start rounded-full bg-card px-5 text-[11px] uppercase tracking-[.16em] transition-transform duration-150 hover:-translate-y-px active:translate-y-px active:scale-[.985]"
-    >
-      {ui('listen')}
-      <ArrowUpRight
-        size={14}
-        strokeWidth={1.6}
-        className="transition-transform duration-150 group-hover:translate-x-[3px]"
-      />
-    </a>
-  ) : null
-
-  if (compact) {
-    const hasCover = project.images.length > 0
-    return (
-      <div
-        className={`grid items-center gap-6 sm:gap-10 ${
-          hasCover
-            ? mirrored
-              ? 'sm:grid-cols-[minmax(0,1fr)_minmax(0,260px)]'
-              : 'sm:grid-cols-[minmax(0,260px)_minmax(0,1fr)]'
-            : ''
-        }`}
-      >
-        {hasCover && (
-          <div className={mirrored ? 'sm:order-2' : ''}>
-            <PhotoFrame
-              gallery={[{ src: project.images[0], alt: project.title }]}
-              index={0}
-              title={project.title}
-              className="aspect-square w-full max-w-[300px] sm:max-w-none"
-              develop={first}
-            />
-          </div>
-        )}
-        <div className={`grid gap-5 lg:gap-6 ${mirrored ? 'sm:order-1' : ''}`}>
-          {heading}
-          {storyBlock}
-          {listen}
-        </div>
-      </div>
-    )
-  }
+  const t = useTranslations('projects')
+  const meta = project.meta[locale] || project.meta.en
+  const cover = project.images[0]
 
   return (
-    <div className="grid gap-6 lg:gap-8">
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end lg:gap-10">
-        {heading}
-        {listen}
-      </div>
-      {storyBlock}
-      <EntryGallery images={project.images} title={project.title} mirrored={mirrored} />
-    </div>
+    <li className="border-b border-border">
+      <button
+        type="button"
+        onClick={() => onOpen(index)}
+        aria-label={t('open', { title: project.title || '—' })}
+        className="group grid w-full grid-cols-[52px_minmax(0,1fr)_auto] items-center gap-4 py-3 text-left transition-colors duration-200 hover:bg-subtle focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground lg:grid-cols-[56px_64px_minmax(0,1.1fr)_minmax(0,1fr)_72px_20px] lg:gap-6 lg:rounded-[14px] lg:px-3"
+      >
+        <span className="block aspect-square overflow-hidden rounded-[6px] bg-card">
+          {cover && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={cover}
+              alt=""
+              loading="lazy"
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+            />
+          )}
+        </span>
+        <span className="font-caption hidden text-[10px] tracking-[.2em] text-secondary tabular-nums lg:block">
+          N°{pad(index + 1)}
+        </span>
+        <span className="min-w-0">
+          <span className="font-title block truncate text-[21px] leading-tight lg:text-[26px]">
+            {project.title || '—'}
+          </span>
+          {meta && (
+            <span className="mt-0.5 block truncate text-[13px] font-light text-secondary lg:hidden">{meta}</span>
+          )}
+        </span>
+        <span className="hidden truncate text-sm font-light text-secondary lg:block">{meta}</span>
+        <span className="font-caption text-[10px] tracking-[.18em] text-secondary tabular-nums lg:text-[11px]">
+          {project.year}
+        </span>
+        <ArrowUpRight
+          size={16}
+          strokeWidth={1.5}
+          className="hidden text-secondary transition-transform duration-150 group-hover:translate-x-[2px] group-hover:-translate-y-[2px] lg:block"
+        />
+      </button>
+    </li>
   )
 }
 
 /* ── The page ─────────────────────────────────────────────────────────────── */
 
-function ProjectsContent({ content, locale }: ProjectsViewProps) {
-  const t = (value: Localized) => value[locale] || value.en
-  const ui = useTranslations('projects')
+export default function ProjectsView({ content, locale }: ProjectsViewProps) {
+  const pick = (value: Localized) => value[locale] || value.en
+  const t = useTranslations('projects')
   const reduceMotion = useReducedMotion()
   const { projectsPage, cta } = content
   // Exactly the order the back office shows: the home-page picks, then the rest.
@@ -246,137 +216,117 @@ function ProjectsContent({ content, locale }: ProjectsViewProps) {
     ...content.projects.filter(project => !project.featured),
   ]
 
-  // The entry in the middle of the screen. The presentation column follows it,
-  // so the page reads as one story told in the back office's order.
-  const [active, setActive] = useState(0)
-  const itemRefs = useRef<(HTMLLIElement | null)[]>([])
-  const listRef = useRef<HTMLOListElement>(null)
+  const [view, setView] = useState<View>('wall')
+  const [pointed, setPointed] = useState<number | null>(null)
+  const [opened, setOpened] = useState<number | null>(null)
+  const total = projects.length
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      entries => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) setActive(Number((entry.target as HTMLElement).dataset.index))
-        })
-      },
-      { rootMargin: '-45% 0px -50% 0px' },
-    )
-    itemRefs.current.forEach(item => item && observer.observe(item))
-    return () => observer.disconnect()
-  }, [projects.length])
+  const close = useCallback(() => setOpened(null), [])
+  const step = useCallback(
+    (delta: number) => setOpened(i => (i === null ? i : (i + delta + total) % total)),
+    [total],
+  )
 
-  const { scrollYProgress } = useScroll({ target: listRef, offset: ['start 50%', 'end 50%'] })
-  const progress = useSpring(scrollYProgress, { stiffness: 120, damping: 30, mass: 0.3 })
-
-  const current = projects[active]
-
-  // The presentation arrives once on load: the title rises, the rest follows.
-  const after = (i: number) =>
-    reduceMotion
-      ? {}
-      : {
-          initial: { opacity: 0, y: 12 },
-          animate: { opacity: 1, y: 0 },
-          transition: { duration: 0.52, ease: EASE_ENTER, delay: 0.4 + i * 0.06 },
-        }
+  const views: { id: View; label: string; Icon: typeof LayoutGrid }[] = [
+    { id: 'wall', label: t('wall'), Icon: LayoutGrid },
+    { id: 'index', label: t('index'), Icon: List },
+  ]
 
   return (
     <div className="relative isolate">
       <section
         aria-labelledby="projects-title"
-        className="relative z-[1] px-6 pt-10 pb-24 lg:grid lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)] lg:gap-20 lg:px-22 lg:pt-16 lg:pb-40"
+        className="relative z-[1] px-4 pt-8 pb-24 sm:px-6 lg:px-12 lg:pt-12 lg:pb-36 xl:px-22"
       >
-        {/* ── The presentation: stays beside the story on desktop ─────────── */}
-        <div className="mb-14 lg:mb-0">
-          <div className="lg:sticky lg:top-[124px]">
-            <motion.p
-              {...after(-6)}
-              className="font-caption mb-5 text-[10px] uppercase tracking-[.28em] text-secondary lg:mb-7 lg:text-[11px] lg:tracking-[.3em]"
-            >
-              {t(projectsPage.kicker)}
-            </motion.p>
-
+        {/* ── Title bar: the name, the count, the view ────────────────────── */}
+        <div className="mb-6 flex items-end justify-between gap-4 lg:mb-9">
+          <div className="flex items-start gap-2.5 lg:gap-3.5">
             <RiseText
               as="h1"
               onLoad
-              className="font-title text-[64px] leading-[.92] tracking-[-.035em] lg:text-[88px] lg:leading-[.9]"
+              className="font-title text-[46px] leading-[.95] tracking-[-.035em] lg:text-[76px] lg:leading-[.9]"
             >
-              <span id="projects-title">{t(projectsPage.title)}</span>
+              <span id="projects-title">{pick(projectsPage.title)}</span>
             </RiseText>
-
-            <motion.p
-              {...after(0)}
-              className="mt-5 max-w-[420px] text-[15px] font-light leading-[1.8] text-prose lg:mt-7 lg:text-base"
+            <motion.span
+              initial={reduceMotion ? false : { opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.45 }}
+              className="font-caption mt-1 text-[11px] tracking-[.16em] text-secondary tabular-nums lg:mt-2 lg:text-[13px]"
             >
-              {t(projectsPage.intro)}
-            </motion.p>
-
-            {projects.length > 0 && (
-              <motion.div {...after(1)} className="mt-10 hidden lg:block" aria-hidden>
-                <div className="flex items-baseline gap-3">
-                  <span className="font-title text-[56px] leading-none tracking-[-.03em] text-primary tabular-nums">
-                    {pad(active + 1)}
-                  </span>
-                  <span className="font-caption text-[11px] tracking-[.2em] text-secondary">
-                    / {pad(projects.length)}
-                  </span>
-                </div>
-
-                <div className="relative mt-5 h-px w-full bg-border">
-                  <motion.div
-                    className="absolute inset-y-0 left-0 w-full origin-left bg-foreground"
-                    style={{ scaleX: reduceMotion ? scrollYProgress : progress }}
-                  />
-                </div>
-
-                <div className="relative mt-5 h-14 overflow-hidden">
-                  <AnimatePresence mode="popLayout" initial={false}>
-                    <motion.div
-                      key={current?.id ?? 'none'}
-                      initial={reduceMotion ? false : { y: 24, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      exit={reduceMotion ? undefined : { y: -24, opacity: 0 }}
-                      transition={{ duration: 0.4, ease: EASE_ENTER }}
-                      className="absolute inset-x-0 top-0"
-                    >
-                      <p className="truncate font-title text-[22px] leading-tight">{current?.title}</p>
-                      <p className="mt-1 truncate text-[13px] font-light text-secondary">
-                        {current ? t(current.meta) : ''}
-                      </p>
-                    </motion.div>
-                  </AnimatePresence>
-                </div>
-              </motion.div>
-            )}
+              {pad(total)}
+            </motion.span>
           </div>
+
+          {total > 0 && (
+            <div
+              role="group"
+              aria-label={t('view')}
+              className="flex shrink-0 rounded-full bg-card p-1"
+            >
+              {views.map(({ id, label, Icon }) => (
+                <button
+                  key={id}
+                  type="button"
+                  aria-pressed={view === id}
+                  onClick={() => setView(id)}
+                  className={`font-caption relative flex min-h-11 items-center gap-2 rounded-full px-3.5 text-[10px] uppercase tracking-[.16em] transition-colors duration-200 lg:px-4.5 lg:text-[11px] ${
+                    view === id ? 'text-background' : 'text-secondary hover:text-foreground'
+                  }`}
+                >
+                  {view === id && (
+                    <motion.span
+                      layoutId="projects-view"
+                      transition={{ duration: reduceMotion ? 0 : 0.35, ease: EASE_ENTER }}
+                      className="absolute inset-0 rounded-full bg-foreground"
+                    />
+                  )}
+                  <Icon size={14} strokeWidth={1.7} className="relative" />
+                  <span className="relative hidden sm:inline">{label}</span>
+                  <span className="sr-only sm:hidden">{label}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* ── The story, in the back office's order ───────────────────────── */}
-        {projects.length === 0 ? (
-          <p className="py-16 text-[15px] font-light text-prose">{ui('empty')}</p>
-        ) : (
-          <ol ref={listRef} aria-label={ui('journal')} className="grid">
+        {/* ── The projects, in the back office's order ────────────────────── */}
+        {total === 0 ? (
+          <p className="py-16 text-[15px] font-light text-prose">{t('empty')}</p>
+        ) : view === 'wall' ? (
+          <ul
+            aria-label={pick(projectsPage.title)}
+            onMouseLeave={() => setPointed(null)}
+            className="wall grid grid-cols-3 gap-1.5 sm:grid-cols-4 sm:gap-2 md:grid-cols-5 lg:grid-cols-7 lg:gap-2.5 xl:grid-cols-8 2xl:grid-cols-10"
+          >
             {projects.map((project, index) => (
-              <li
+              <WallTile
                 key={project.id}
-                data-index={index}
-                ref={el => {
-                  itemRefs.current[index] = el
-                }}
-                className={index > 0 ? 'mt-14 border-t border-border pt-14 lg:mt-20 lg:pt-20' : ''}
-              >
-                <Entry
-                  project={project}
-                  number={index + 1}
-                  index={index}
-                  locale={locale}
-                  first={index === 0}
-                />
-              </li>
+                project={project}
+                index={index}
+                onOpen={setOpened}
+                onPoint={setPointed}
+              />
+            ))}
+          </ul>
+        ) : (
+          <ol aria-label={pick(projectsPage.title)} className="border-t border-border">
+            {projects.map((project, index) => (
+              <IndexRow key={project.id} project={project} index={index} locale={locale} onOpen={setOpened} />
             ))}
           </ol>
         )}
       </section>
+
+      {view === 'wall' && opened === null && (
+        <Readout
+          project={pointed !== null ? (projects[pointed] ?? null) : null}
+          number={(pointed ?? 0) + 1}
+          locale={locale}
+        />
+      )}
+
+      <ProjectSheet projects={projects} index={opened} locale={locale} onClose={close} onStep={step} />
 
       {/* ── Contact ──────────────────────────────────────────────────────────── */}
       <section
@@ -389,10 +339,10 @@ function ProjectsContent({ content, locale }: ProjectsViewProps) {
               as="h2"
               className="font-title mb-3 text-[40px] leading-[.98] tracking-[-.03em] lg:mb-4.5 lg:text-[76px] lg:leading-[.95] lg:tracking-[-.035em]"
             >
-              {t(cta.title)}
+              {pick(cta.title)}
             </RiseText>
             <p className="mb-7 text-sm font-light leading-[1.7] text-on-accent lg:mb-0 lg:text-base">
-              {t(cta.body)}
+              {pick(cta.body)}
             </p>
           </div>
 
@@ -418,13 +368,5 @@ function ProjectsContent({ content, locale }: ProjectsViewProps) {
         </div>
       </section>
     </div>
-  )
-}
-
-export default function ProjectsView(props: ProjectsViewProps) {
-  return (
-    <LightboxProvider>
-      <ProjectsContent {...props} />
-    </LightboxProvider>
   )
 }

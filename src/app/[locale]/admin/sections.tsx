@@ -268,8 +268,9 @@ export function ProjectsForm({
     <div className="space-y-10">
       <div className="space-y-6">
         <SectionIntro title="Projects">
-          The projects page tells every project in the order below, each with as many
-          photos as you like. Up to three are also shown on the home page.
+          The projects page shows every project as a wall of covers, in the order
+          below; a click opens its photos and story. Up to three are also shown on
+          the home page.
         </SectionIntro>
 
         <ProjectsEditor
@@ -284,35 +285,26 @@ export function ProjectsForm({
         <div>
           <h3 className="font-title text-lg">Page text</h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            The words around the projects on /projects.
+            The title above the wall on /projects, and how the page reads in search and
+            link previews.
           </p>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
-          <LocalizedField
-            label="Kicker"
-            value={page.kicker}
-            locale={locale}
-            onChange={kicker => onPageChange({ ...page, kicker })}
-            placeholder="e.g. Journal · Studio & stage"
-          />
-          <LocalizedField
-            label="Title"
-            value={page.title}
-            locale={locale}
-            onChange={title => onPageChange({ ...page, title })}
-            placeholder="e.g. Projects"
-          />
-        </div>
+        <LocalizedField
+          label="Title"
+          value={page.title}
+          locale={locale}
+          onChange={title => onPageChange({ ...page, title })}
+          placeholder="e.g. Projects"
+        />
 
         <LocalizedField
-          label="Intro"
+          label="Description (search & sharing)"
           rows={3}
           value={page.intro}
           locale={locale}
           onChange={intro => onPageChange({ ...page, intro })}
         />
-
       </div>
     </div>
   )

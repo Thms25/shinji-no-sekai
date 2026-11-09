@@ -9,10 +9,16 @@
     "location": "Bruxelles, Belgique"
   },
   "projects": {
-    "journal": "Projets, année par année",
     "listen": "Écouter",
-    "empty": "Rien dans le journal pour l'instant.",
-    "openPhoto": "{title}, photo {index} sur {total}",
-    "morePhotos": "+{count} {count, plural, one {photo} other {photos}}"
+    "empty": "Aucun projet pour l'instant.",
+    "open": "Ouvrir {title}",
+    "photoOf": "{title}, photo {index} sur {total}",
+    "photos": "{count} photos",
+    "close": "Fermer",
+    "previous": "Projet précédent",
+    "next": "Projet suivant",
+    "view": "Affichage",
+    "wall": "Mur",
+    "index": "Index"
   }
 }
