@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import jwt from 'jsonwebtoken'
+import { DEV_ADMIN, DEV_AUTH_BYPASS } from '@/lib/dev-auth'
 
 const JWT_SECRET = process.env.JWT_SECRET
 
@@ -10,6 +11,12 @@ if (!JWT_SECRET) {
 const JWT_SECRET_VALUE: string = JWT_SECRET
 
 export async function GET(req: NextRequest) {
+  if (DEV_AUTH_BYPASS) {
+    return NextResponse.json({
+      user: { id: DEV_ADMIN.userId, email: DEV_ADMIN.email, role: DEV_ADMIN.role },
+    })
+  }
+
   try {
     const token = req.cookies.get('auth')?.value
     if (!token) {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { Readable } from 'node:stream'
 import jwt from 'jsonwebtoken'
 import { getAudioBucket } from '@/lib/mongodb'
+import { DEV_AUTH_BYPASS } from '@/lib/dev-auth'
 
 const DB_NAME = process.env.MONGODB_DB_NAME || 'Shinji'
 const JWT_SECRET = process.env.JWT_SECRET
@@ -12,13 +13,15 @@ if (!JWT_SECRET) {
 
 export async function POST(req: NextRequest) {
   try {
-    const token = req.cookies.get('auth')?.value
-    if (!token) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-    const decoded = jwt.verify(token, JWT_SECRET as string) as { role?: string }
-    if (decoded.role !== 'admin') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    if (!DEV_AUTH_BYPASS) {
+      const token = req.cookies.get('auth')?.value
+      if (!token) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      }
+      const decoded = jwt.verify(token, JWT_SECRET as string) as { role?: string }
+      if (decoded.role !== 'admin') {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
     }
 
     const formData = await req.formData()
