@@ -7,5 +7,12 @@
   },
   "footer": {
     "location": "Brussels, Belgium"
+  },
+  "projects": {
+    "journal": "Projects, year by year",
+    "listen": "Listen",
+    "empty": "Nothing in the journal yet.",
+    "openPhoto": "{title}, photo {index} of {total}",
+    "morePhotos": "+{count} {count, plural, one {photo} other {photos}}"
   }
 }

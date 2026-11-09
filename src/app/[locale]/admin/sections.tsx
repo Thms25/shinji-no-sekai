@@ -7,6 +7,8 @@ import type {
   HeroContent,
   LiveSection,
   PrincipleItem,
+  ProjectItem,
+  ProjectsPageContent,
   RoomContent,
   StudioSection,
 } from '@/utils/db/content'
@@ -16,6 +18,7 @@ import {
   type SiteLocale,
 } from '@/utils/content/home-defaults'
 import { CreditItemsEditor } from './CreditItemsEditor'
+import { ProjectsEditor } from './ProjectsEditor'
 import { ImageField, LocalizedField, TextField } from './fields'
 import { ghostButtonClasses, labelClasses } from './form-styles'
 
@@ -202,11 +205,12 @@ export function PrinciplesForm({
 
 /* ── Studio work ───────────────────────────────────────────────────────────── */
 
-export function StudioForm({ value, locale, onChange, onError }: SectionProps<StudioSection>) {
+export function StudioForm({ value, locale, onChange }: SectionProps<StudioSection>) {
   return (
     <div className="space-y-6">
       <SectionIntro title="Studio work">
-        Selected records, shown as square cards with a credit line and a year.
+        The heading and links of the home page’s studio section. Its three cards are
+        the projects marked “On home” in the Projects tab.
       </SectionIntro>
 
       <LocalizedField
@@ -232,16 +236,83 @@ export function StudioForm({ value, locale, onChange, onError }: SectionProps<St
         />
       </div>
 
-      <div className="space-y-3">
-        <span className={labelClasses}>Entries</span>
-        <CreditItemsEditor
-          items={value.items}
+      <LocalizedField
+        label="“All projects” button"
+        value={value.moreLabel}
+        locale={locale}
+        onChange={moreLabel => onChange({ ...value, moreLabel })}
+        placeholder="e.g. All projects"
+      />
+    </div>
+  )
+}
+
+/* ── Projects ──────────────────────────────────────────────────────────────── */
+
+export function ProjectsForm({
+  page,
+  projects,
+  locale,
+  onPageChange,
+  onProjectsChange,
+  onError,
+}: {
+  page: ProjectsPageContent
+  projects: ProjectItem[]
+  locale: SiteLocale
+  onPageChange: (value: ProjectsPageContent) => void
+  onProjectsChange: (value: ProjectItem[]) => void
+  onError: (message: string) => void
+}) {
+  return (
+    <div className="space-y-10">
+      <div className="space-y-6">
+        <SectionIntro title="Projects">
+          The projects page tells every project in the order below, each with as many
+          photos as you like. Up to three are also shown on the home page.
+        </SectionIntro>
+
+        <ProjectsEditor
+          projects={projects}
           locale={locale}
-          onChange={items => onChange({ ...value, items })}
+          onChange={onProjectsChange}
           onError={onError}
-          imageHint="Square crop"
-          addLabel="Add studio credit"
         />
+      </div>
+
+      <div className="space-y-6 border-t border-border pt-8">
+        <div>
+          <h3 className="font-title text-lg">Page text</h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            The words around the projects on /projects.
+          </p>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <LocalizedField
+            label="Kicker"
+            value={page.kicker}
+            locale={locale}
+            onChange={kicker => onPageChange({ ...page, kicker })}
+            placeholder="e.g. Journal · Studio & stage"
+          />
+          <LocalizedField
+            label="Title"
+            value={page.title}
+            locale={locale}
+            onChange={title => onPageChange({ ...page, title })}
+            placeholder="e.g. Projects"
+          />
+        </div>
+
+        <LocalizedField
+          label="Intro"
+          rows={3}
+          value={page.intro}
+          locale={locale}
+          onChange={intro => onPageChange({ ...page, intro })}
+        />
+
       </div>
     </div>
   )

@@ -2,7 +2,8 @@ import { ObjectId } from 'mongodb'
 import { getDbInstance } from './client'
 
 /**
- * The public site is one page ("Soft Overlap"), so `home` is the only live document.
+ * The public site is the home page plus the projects journal; both read the one
+ * `home` document, so `home` is the only live document.
  * The legacy ids stay in the union so the admin can still read the pre-redesign
  * documents and migrate them forward — nothing writes them any more.
  */
@@ -50,11 +51,43 @@ export interface CreditItem {
   url?: string
 }
 
+/**
+ * One entry of the projects journal. Every project lives on the projects page; the
+ * ones flagged `featured` (three at most, in list order) also fill the home page's
+ * studio section.
+ */
+export interface ProjectItem {
+  /** Stable key, so reordering and editing never confuse two entries. */
+  id: string
+  /** The artist or project name — the entry's heading. */
+  title: string
+  /** Credit line, e.g. "Album: Movie — Mixing / Atmos". */
+  meta: Localized
+  /** Free text ("2026", "2023 — 2026"), shown as a tag; "Order by date" sorts on it. */
+  year: string
+  /** A few lines about the moment, shown on the projects page only. */
+  story: Localized
+  /** Photographs, in order. The first is the cover used on the home page. */
+  images: string[]
+  /** Optional — turns the name into a link out. */
+  url: string
+  /** Shown in the home page's studio section. */
+  featured: boolean
+}
+
 export interface StudioSection {
   title: Localized
   linkLabel: Localized
   linkUrl: string
-  items: CreditItem[]
+  /** Label of the link from the home page to the projects page. */
+  moreLabel: Localized
+}
+
+/** Editable copy of the projects page. The entries themselves live in `projects`. */
+export interface ProjectsPageContent {
+  kicker: Localized
+  title: Localized
+  intro: Localized
 }
 
 export interface RoomContent {
@@ -82,6 +115,8 @@ export interface HomePageContent {
   about: AboutContent
   principles: PrincipleItem[]
   studio: StudioSection
+  projects: ProjectItem[]
+  projectsPage: ProjectsPageContent
   room: RoomContent
   live: LiveSection
   cta: CtaContent

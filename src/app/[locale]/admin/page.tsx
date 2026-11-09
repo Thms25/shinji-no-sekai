@@ -22,6 +22,7 @@ import {
   HeroForm,
   LiveForm,
   PrinciplesForm,
+  ProjectsForm,
   RoomForm,
   StudioForm,
 } from './sections'
@@ -160,6 +161,13 @@ export default function SiteContentAdmin() {
           >
             View site <ExternalLink size={14} />
           </Link>
+          <Link
+            href="/projects"
+            target="_blank"
+            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Projects page <ExternalLink size={14} />
+          </Link>
           <button
             type="button"
             onClick={signOut}
@@ -230,6 +238,15 @@ export default function SiteContentAdmin() {
               {...sectionProps}
               value={content.studio}
               onChange={value => update('studio', value)}
+            />
+          )}
+          {activeTab === 'projects' && (
+            <ProjectsForm
+              {...sectionProps}
+              page={content.projectsPage}
+              projects={content.projects}
+              onPageChange={value => update('projectsPage', value)}
+              onProjectsChange={value => update('projects', value)}
             />
           )}
           {activeTab === 'room' && (

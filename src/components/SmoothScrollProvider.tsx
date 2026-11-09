@@ -75,11 +75,11 @@ export function useSmoothScroll() {
 }
 
 /**
- * Damped page scrolling for the public single-page site.
+ * Damped page scrolling for the public pages (home and projects).
  *
  * Lenis drives the real window scroll (rather than transforming a wrapper), so the
  * sticky hero and the fixed navbar keep behaving normally. It is deliberately scoped
- * to `/`: the admin console and artist portal are forms and tables, where anything
+ * to `/` and `/projects`: the admin console and artist portal are forms and tables, where anything
  * other than the browser's own scrolling gets in the way.
  */
 export function SmoothScrollProvider({ children }: { children: ReactNode }) {
@@ -87,7 +87,7 @@ export function SmoothScrollProvider({ children }: { children: ReactNode }) {
   const reduceMotion = useReducedMotion()
   const lenisRef = useRef<Lenis | null>(null)
 
-  const enabled = pathname === '/' && !reduceMotion
+  const enabled = (pathname === '/' || pathname === '/projects') && !reduceMotion
 
   useEffect(() => {
     if (!enabled) return

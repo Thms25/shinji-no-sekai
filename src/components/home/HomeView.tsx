@@ -1,8 +1,13 @@
 'use client'
 
-import { Instagram } from 'lucide-react'
+import { ArrowRight, Instagram } from 'lucide-react'
+import { Link } from '@/i18n/navigation'
 import type { CreditItem, HomePageContent, Localized } from '@/utils/db/content'
-import { PRINCIPLE_NUMERALS, type SiteLocale } from '@/utils/content/home-defaults'
+import {
+  featuredProjects,
+  PRINCIPLE_NUMERALS,
+  type SiteLocale,
+} from '@/utils/content/home-defaults'
 import { AccentBlob } from './AccentBlob'
 import { LightboxProvider, useLightbox } from './Lightbox'
 import { Reveal, staggerDelay } from './Reveal'
@@ -51,7 +56,17 @@ function CreditImage({ item, className }: { item: CreditItem; className: string 
 export default function HomeView({ content, locale }: HomeViewProps) {
   const t = (value: Localized) => value[locale] || value.en
 
-  const { hero, about, principles, studio, room, live, cta } = content
+  const { hero, about, principles, studio, room, live, cta, projects } = content
+
+  // The studio cards are the projects flagged for the home page; the rest wait on
+  // the projects page, which the link under the cards leads to.
+  const studioItems: CreditItem[] = featuredProjects(projects).map(project => ({
+    image: project.images[0] ?? '',
+    artist: project.title,
+    meta: project.meta,
+    year: project.year,
+    url: project.url,
+  }))
 
   return (
     <LightboxProvider>
@@ -194,7 +209,7 @@ export default function HomeView({ content, locale }: HomeViewProps) {
           </div>
 
           <ul className="flex flex-col gap-5.5 lg:grid lg:grid-cols-3 lg:gap-9">
-            {studio.items.map((item, index) => (
+            {studioItems.map((item, index) => (
               <Reveal
                 as="li"
                 key={index}
@@ -235,6 +250,29 @@ export default function HomeView({ content, locale }: HomeViewProps) {
               </Reveal>
             ))}
           </ul>
+
+          {projects.length > 0 && (
+            <Reveal className="mt-9 lg:mt-14">
+              <Link
+                href="/projects"
+                className="group font-caption inline-flex w-full items-center justify-between gap-4 rounded-full bg-foreground py-2 pr-2 pl-6 text-[11px] uppercase tracking-[.18em] text-background transition-[opacity,transform] duration-150 hover:-translate-y-px active:translate-y-px active:scale-[.985] lg:w-auto lg:gap-8 lg:pl-8 lg:text-xs"
+              >
+                <span>
+                  {t(studio.moreLabel)}
+                  <span className="ml-3 text-background/55">
+                    {String(projects.length).padStart(2, '0')}
+                  </span>
+                </span>
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-foreground lg:h-12 lg:w-12">
+                  <ArrowRight
+                    size={18}
+                    strokeWidth={1.6}
+                    className="transition-transform duration-150 group-hover:translate-x-[3px]"
+                  />
+                </span>
+              </Link>
+            </Reveal>
+          )}
         </section>
 
         {/* ── The room ─────────────────────────────────────────────────────── */}

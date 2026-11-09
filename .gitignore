@@ -50,3 +50,6 @@ next-env.d.ts
 /.design-sync/learnings/
 /.design-sync/node_modules
 /.design-sync/pkg/
+
+# design-taste-frontend skill state (deal history, gate runs)
+.taste-skill/

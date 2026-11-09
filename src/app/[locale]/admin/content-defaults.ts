@@ -3,6 +3,7 @@ export type TabId =
   | 'about'
   | 'principles'
   | 'studio'
+  | 'projects'
   | 'room'
   | 'live'
   | 'cta'
@@ -13,6 +14,7 @@ export const TAB_LABELS: [TabId, string][] = [
   ['about', 'About'],
   ['principles', 'Principles'],
   ['studio', 'Studio work'],
+  ['projects', 'Projects'],
   ['room', 'The room'],
   ['live', 'Live work'],
   ['cta', 'Contact'],
