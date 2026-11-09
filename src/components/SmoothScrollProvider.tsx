@@ -114,6 +114,33 @@ export function SmoothScrollProvider({ children }: { children: ReactNode }) {
     }
   }, [enabled])
 
+  // A link to another page starts at its top. Lenis lives on across `/` and
+  // `/projects`, so without this it keeps (and glides back to) the old page's
+  // position. Back and forward are left alone: the browser restores those.
+  const fromHistory = useRef(false)
+  useEffect(() => {
+    const onPop = () => {
+      fromHistory.current = true
+    }
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [])
+
+  const firstPath = useRef(true)
+  useEffect(() => {
+    if (firstPath.current) {
+      firstPath.current = false
+      return
+    }
+    if (fromHistory.current) {
+      fromHistory.current = false
+      return
+    }
+    if (window.location.hash) return
+    lenisRef.current?.scrollTo(0, { immediate: true, force: true })
+    window.scrollTo(0, 0)
+  }, [pathname])
+
   const scrollTo = useCallback(
     (target: ScrollTarget) => {
       const lenis = lenisRef.current
