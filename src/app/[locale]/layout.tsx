@@ -4,6 +4,7 @@ import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { SmoothScrollProvider } from '@/components/SmoothScrollProvider'
+import { HtmlLang } from '@/components/HtmlLang'
 
 export default async function LocaleLayout({
   children,
@@ -17,6 +18,7 @@ export default async function LocaleLayout({
 
   return (
     <NextIntlClientProvider messages={messages}>
+      <HtmlLang />
       <AuthProvider>
         <SmoothScrollProvider>
           <Navbar />

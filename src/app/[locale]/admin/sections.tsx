@@ -7,6 +7,8 @@ import type {
   HeroContent,
   LiveSection,
   PrincipleItem,
+  ProjectItem,
+  ProjectsPageContent,
   RoomContent,
   StudioSection,
 } from '@/utils/db/content'
@@ -16,6 +18,7 @@ import {
   type SiteLocale,
 } from '@/utils/content/home-defaults'
 import { CreditItemsEditor } from './CreditItemsEditor'
+import { ProjectsEditor } from './ProjectsEditor'
 import { ImageField, LocalizedField, TextField } from './fields'
 import { ghostButtonClasses, labelClasses } from './form-styles'
 
@@ -202,11 +205,12 @@ export function PrinciplesForm({
 
 /* ── Studio work ───────────────────────────────────────────────────────────── */
 
-export function StudioForm({ value, locale, onChange, onError }: SectionProps<StudioSection>) {
+export function StudioForm({ value, locale, onChange }: SectionProps<StudioSection>) {
   return (
     <div className="space-y-6">
       <SectionIntro title="Studio work">
-        Selected records, shown as square cards with a credit line and a year.
+        The heading and links of the home page’s studio section. Its three cards are
+        the projects marked “On home” in the Projects tab.
       </SectionIntro>
 
       <LocalizedField
@@ -232,15 +236,74 @@ export function StudioForm({ value, locale, onChange, onError }: SectionProps<St
         />
       </div>
 
-      <div className="space-y-3">
-        <span className={labelClasses}>Entries</span>
-        <CreditItemsEditor
-          items={value.items}
+      <LocalizedField
+        label="“All projects” button"
+        value={value.moreLabel}
+        locale={locale}
+        onChange={moreLabel => onChange({ ...value, moreLabel })}
+        placeholder="e.g. All projects"
+      />
+    </div>
+  )
+}
+
+/* ── Projects ──────────────────────────────────────────────────────────────── */
+
+export function ProjectsForm({
+  page,
+  projects,
+  locale,
+  onPageChange,
+  onProjectsChange,
+  onError,
+}: {
+  page: ProjectsPageContent
+  projects: ProjectItem[]
+  locale: SiteLocale
+  onPageChange: (value: ProjectsPageContent) => void
+  onProjectsChange: (value: ProjectItem[]) => void
+  onError: (message: string) => void
+}) {
+  return (
+    <div className="space-y-10">
+      <div className="space-y-6">
+        <SectionIntro title="Projects">
+          The projects page shows every project as a wall of covers, in the order
+          below; a click opens its photos and story. Up to three are also shown on
+          the home page.
+        </SectionIntro>
+
+        <ProjectsEditor
+          projects={projects}
           locale={locale}
-          onChange={items => onChange({ ...value, items })}
+          onChange={onProjectsChange}
           onError={onError}
-          imageHint="Square crop"
-          addLabel="Add studio credit"
+        />
+      </div>
+
+      <div className="space-y-6 border-t border-border pt-8">
+        <div>
+          <h3 className="font-title text-lg">Page text</h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            The title above the wall on /projects, and how the page reads in search and
+            link previews.
+          </p>
+        </div>
+
+        <LocalizedField
+          label="Title"
+          value={page.title}
+          locale={locale}
+          onChange={title => onPageChange({ ...page, title })}
+          placeholder="e.g. Projects"
+        />
+
+        <LocalizedField
+          label="Description (search & sharing)"
+          rows={3}
+          value={page.intro}
+          locale={locale}
+          onChange={intro => onPageChange({ ...page, intro })}
         />
       </div>
     </div>
@@ -329,7 +392,7 @@ export function CtaForm({ value, locale, onChange }: SectionProps<CtaContent>) {
   return (
     <div className="space-y-6">
       <SectionIntro title="Contact">
-        The closing panel. The address becomes a mailto button.
+        The closing panel. The address becomes a mailto button, with the Instagram link beside it.
       </SectionIntro>
 
       <LocalizedField
@@ -352,6 +415,14 @@ export function CtaForm({ value, locale, onChange }: SectionProps<CtaContent>) {
         value={value.email}
         onChange={email => onChange({ ...value, email })}
         placeholder="hello@sekai-studios.com"
+      />
+
+      <TextField
+        label="Instagram URL"
+        hint="Shown beside the email button — leave empty to hide it"
+        value={value.instagram}
+        onChange={instagram => onChange({ ...value, instagram })}
+        placeholder="https://www.instagram.com/shinji.no.sekai/"
       />
     </div>
   )

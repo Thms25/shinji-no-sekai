@@ -1,9 +1,8 @@
 'use client'
 
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { LocaleSwitcher } from '@/components/LocaleSwitcher'
+import { Link, usePathname } from '@/i18n/navigation'
 import { useSmoothScroll } from '@/components/SmoothScrollProvider'
 
 const SECTIONS = ['about', 'studio', 'room', 'live'] as const
@@ -48,7 +47,7 @@ export default function Navbar() {
           }}
           className="font-title text-[19px] tracking-[-.01em] transition-opacity hover:opacity-60 lg:text-[22px]"
         >
-          Shinji No Sekai
+          Sekai Studios
         </Link>
 
         {isHome && (

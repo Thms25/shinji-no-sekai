@@ -4,9 +4,16 @@ import type {
   LegacyContent,
   Localized,
   PrincipleItem,
+  ProjectItem,
 } from '@/utils/db/content'
 
 export type SiteLocale = 'en' | 'fr'
+
+/**
+ * Link-preview image: name, role and portrait on the site's cream, at the 1200×630
+ * every network shows as a large card. Static, so it does not follow admin uploads.
+ */
+export const SHARE_IMAGE = { url: '/images/og-share.jpg', width: 1200, height: 630 }
 
 /**
  * Fallback copy for the whole public page. Used whenever the `home` document is
@@ -73,26 +80,48 @@ export const DEFAULT_HOME_CONTENT: HomePageContent = {
     title: { en: 'Selected studio work', fr: 'Travaux studio choisis' },
     linkLabel: { en: 'Recent work on Spotify', fr: 'Travaux récents sur Spotify' },
     linkUrl: 'https://open.spotify.com/',
-    items: [
-      {
-        image: '',
-        artist: 'Sofiane Pamart',
-        meta: { en: 'Album: Movie — Mixing / Atmos', fr: 'Album : Movie — Mixage / Atmos' },
-        year: '2026',
-      },
-      {
-        image: '',
-        artist: 'Krisy',
-        meta: { en: 'Album: Edward Risky — Mixing', fr: 'Album : Edward Risky — Mixage' },
-        year: '2026',
-      },
-      {
-        image: '',
-        artist: 'Lous & The Yakuza',
-        meta: { en: 'EP: No Big Deal — Recording', fr: 'EP : No Big Deal — Prise de son' },
-        year: '2025',
-      },
-    ],
+    moreLabel: { en: 'All projects', fr: 'Tous les projets' },
+  },
+
+  projects: [
+    {
+      id: 'sofiane-pamart-movie',
+      title: 'Sofiane Pamart',
+      meta: { en: 'Album: Movie — Mixing / Atmos', fr: 'Album : Movie — Mixage / Atmos' },
+      year: '2026',
+      story: { en: '', fr: '' },
+      images: [],
+      url: '',
+      featured: true,
+    },
+    {
+      id: 'krisy-edward-risky',
+      title: 'Krisy',
+      meta: { en: 'Album: Edward Risky — Mixing', fr: 'Album : Edward Risky — Mixage' },
+      year: '2026',
+      story: { en: '', fr: '' },
+      images: [],
+      url: '',
+      featured: true,
+    },
+    {
+      id: 'lous-no-big-deal',
+      title: 'Lous & The Yakuza',
+      meta: { en: 'EP: No Big Deal — Recording', fr: 'EP : No Big Deal — Prise de son' },
+      year: '2025',
+      story: { en: '', fr: '' },
+      images: [],
+      url: '',
+      featured: true,
+    },
+  ],
+
+  projectsPage: {
+    title: { en: 'Projects', fr: 'Projets' },
+    intro: {
+      en: "Records, tours and the sessions in between, in the order I'd tell them.",
+      fr: "Des disques, des tournées et les sessions entre les deux, dans l'ordre où je les raconterais.",
+    },
   },
 
   room: {
@@ -145,6 +174,7 @@ export const DEFAULT_HOME_CONTENT: HomePageContent = {
       fr: "Envoyez deux titres. Je vous dirai honnêtement ce que j'en ferais.",
     },
     email: 'hello@sekai-studios.com',
+    instagram: 'https://www.instagram.com/shinji.no.sekai/',
   },
 }
 
@@ -156,6 +186,38 @@ export const EMPTY_CREDIT_ITEM: CreditItem = {
   meta: { en: '', fr: '' },
   year: '',
   url: '',
+}
+
+/** Latest four-digit year a free-text year names ("2023 — 2026" → 2026); -1 when none. */
+export function projectYear(project: ProjectItem): number {
+  const years = project.year.match(/\d{4}/g)
+  return years ? Math.max(...years.map(Number)) : -1
+}
+
+/** How many projects the home page's studio section shows. */
+export const MAX_FEATURED_PROJECTS = 3
+
+/** A fresh project with a unique id, for the admin's "add" button. */
+export function createProject(): ProjectItem {
+  const id =
+    typeof crypto !== 'undefined' && 'randomUUID' in crypto
+      ? crypto.randomUUID()
+      : `p-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
+  return {
+    id,
+    title: '',
+    meta: { en: '', fr: '' },
+    year: String(new Date().getFullYear()),
+    story: { en: '', fr: '' },
+    images: [],
+    url: '',
+    featured: false,
+  }
+}
+
+/** The projects the home page shows: the featured ones, in list order, three at most. */
+export function featuredProjects(projects: ProjectItem[]): ProjectItem[] {
+  return projects.filter(project => project.featured).slice(0, MAX_FEATURED_PROJECTS)
 }
 
 export const EMPTY_PRINCIPLE: PrincipleItem = {
@@ -192,6 +254,44 @@ function creditItem(value: unknown, fallback: CreditItem): CreditItem {
   }
 }
 
+function projectItem(value: unknown, index: number): ProjectItem {
+  const raw = isRecord(value) ? value : {}
+  const images = Array.isArray(raw.images)
+    ? raw.images.filter((src): src is string => typeof src === 'string' && src.length > 0)
+    : []
+  return {
+    id: str(raw.id, '') || `project-${index}`,
+    title: str(raw.title, ''),
+    meta: loc(raw.meta, EMPTY_LOCALIZED),
+    year: str(raw.year, ''),
+    story: loc(raw.story, EMPTY_LOCALIZED),
+    images,
+    url: str(raw.url, ''),
+    featured: raw.featured === true,
+  }
+}
+
+/**
+ * Before the projects journal, the home page's studio cards were stored as
+ * `studio.items`. A document that has no `projects` yet carries those cards over
+ * as featured projects, so the home page looks the same until the next save.
+ */
+function migrateStudioItems(items: unknown[]): ProjectItem[] {
+  return items.map((item, index) => {
+    const credit = creditItem(item, EMPTY_CREDIT_ITEM)
+    return {
+      id: `studio-${index}`,
+      title: credit.artist,
+      meta: credit.meta,
+      year: credit.year,
+      story: { ...EMPTY_LOCALIZED },
+      images: credit.image ? [credit.image] : [],
+      url: credit.url ?? '',
+      featured: index < MAX_FEATURED_PROJECTS,
+    }
+  })
+}
+
 /**
  * A stored list replaces the default list wholesale (so items can be deleted), but
  * each item is still filled in field by field. An absent list falls back entirely.
@@ -211,6 +311,12 @@ export function normalizeHomeContent(raw: unknown): HomePageContent {
   const hero = isRecord(raw.hero) ? raw.hero : {}
   const about = isRecord(raw.about) ? raw.about : {}
   const studio = isRecord(raw.studio) ? raw.studio : {}
+  const projectsPage = isRecord(raw.projectsPage) ? raw.projectsPage : {}
+  const projects = Array.isArray(raw.projects)
+    ? raw.projects.map(projectItem)
+    : Array.isArray(studio.items)
+      ? migrateStudioItems(studio.items)
+      : d.projects
   const room = isRecord(raw.room) ? raw.room : {}
   const live = isRecord(raw.live) ? raw.live : {}
   const cta = isRecord(raw.cta) ? raw.cta : {}
@@ -240,9 +346,12 @@ export function normalizeHomeContent(raw: unknown): HomePageContent {
       title: loc(studio.title, d.studio.title),
       linkLabel: loc(studio.linkLabel, d.studio.linkLabel),
       linkUrl: str(studio.linkUrl, d.studio.linkUrl),
-      items: list(studio.items, d.studio.items, item =>
-        creditItem(item, EMPTY_CREDIT_ITEM),
-      ),
+      moreLabel: loc(studio.moreLabel, d.studio.moreLabel),
+    },
+    projects,
+    projectsPage: {
+      title: loc(projectsPage.title, d.projectsPage.title),
+      intro: loc(projectsPage.intro, d.projectsPage.intro),
     },
     room: {
       title: loc(room.title, d.room.title),
@@ -258,6 +367,7 @@ export function normalizeHomeContent(raw: unknown): HomePageContent {
       title: loc(cta.title, d.cta.title),
       body: loc(cta.body, d.cta.body),
       email: str(cta.email, d.cta.email),
+      instagram: str(cta.instagram, d.cta.instagram),
     },
   }
 }
@@ -291,18 +401,18 @@ export function migrateLegacyHome(legacy: LegacyContent): Partial<HomePageConten
   }
 
   if (legacy.work?.artists?.length) {
-    patch.studio = {
-      ...DEFAULT_HOME_CONTENT.studio,
-      items: legacy.work.artists.map(artist => ({
-        image: artist.image ?? '',
-        artist: artist.name ?? '',
-        meta: both(artist.description ?? (artist.roles ?? []).join(' · ')),
-        year: '',
-        url:
-          artist.spotify_url ||
-          (artist.spotify_id ? `https://open.spotify.com/artist/${artist.spotify_id}` : ''),
-      })),
-    }
+    patch.projects = legacy.work.artists.map((artist, index) => ({
+      id: `legacy-${index}`,
+      title: artist.name ?? '',
+      meta: both(artist.description ?? (artist.roles ?? []).join(' · ')),
+      year: '',
+      story: { en: '', fr: '' },
+      images: artist.image ? [artist.image] : [],
+      url:
+        artist.spotify_url ||
+        (artist.spotify_id ? `https://open.spotify.com/artist/${artist.spotify_id}` : ''),
+      featured: index < MAX_FEATURED_PROJECTS,
+    }))
   }
 
   if (legacy.contact?.heading || legacy.contact?.subtext) {

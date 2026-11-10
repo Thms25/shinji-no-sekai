@@ -73,3 +73,48 @@ html.lenis body {
   transform-origin: bottom;
   animation: eq-bar 1.4s ease-in-out infinite;
 }
+
+/* ── Projects wall ───────────────────────────────────────────────────────────
+   Pointing at one cover lays the others back, like a loupe on a light table. */
+.wall-tile {
+  transition: opacity 0.35s ease;
+}
+
+@media (hover: hover) {
+  .wall:has(.wall-tile:hover) .wall-tile:not(:hover) {
+    opacity: 0.38;
+  }
+}
+
+/* Dealt moment "picture-develops" (design-taste-frontend), as a contact sheet: the
+   first screen of covers comes up out of the paper once on load, in reading
+   order, a pale grey print first, its darks before its colour. A cover waits as
+   a print until it has loaded, then develops; under reduced motion, and on every
+   cover further down, it is simply the picture. */
+@keyframes wall-develop {
+  0% {
+    filter: grayscale(1) contrast(0.55) brightness(1.32);
+    transform: scale(1.06);
+  }
+  30% {
+    filter: grayscale(0.8) contrast(0.82) brightness(1.14);
+  }
+  62% {
+    filter: grayscale(0.35) contrast(0.95) brightness(1.04);
+  }
+  100% {
+    filter: none;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .wall-photo[data-develop]:not([data-ready]) {
+    filter: grayscale(1) contrast(0.55) brightness(1.32);
+    transform: scale(1.06);
+  }
+
+  .wall-photo[data-develop][data-ready] {
+    animation: wall-develop 1.5s cubic-bezier(0.3, 0.2, 0.3, 1) var(--develop-delay, 0ms) backwards;
+  }
+}

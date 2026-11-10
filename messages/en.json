@@ -7,5 +7,18 @@
   },
   "footer": {
     "location": "Brussels, Belgium"
+  },
+  "projects": {
+    "listen": "Listen",
+    "empty": "No projects yet.",
+    "open": "Open {title}",
+    "photoOf": "{title}, photo {index} of {total}",
+    "photos": "{count} photos",
+    "close": "Close",
+    "previous": "Previous project",
+    "next": "Next project",
+    "view": "View",
+    "wall": "Wall",
+    "index": "Index"
   }
 }

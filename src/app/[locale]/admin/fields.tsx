@@ -142,6 +142,25 @@ export function LocalizedField({
 
 /* ── Image upload ──────────────────────────────────────────────────────────── */
 
+/** Uploads one image to the GridFS bucket and returns the URL it is served from. */
+export async function uploadImage(file: File): Promise<string> {
+  const formData = new FormData()
+  formData.set('file', file)
+  const res = await fetch('/api/images/upload', {
+    method: 'POST',
+    credentials: 'include',
+    body: formData,
+  })
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}))
+    throw new Error(data.error || 'Upload failed')
+  }
+  const data = await res.json()
+  const url: string | null = data.url ?? (data.fileId ? `/api/images/${data.fileId}` : null)
+  if (!url) throw new Error('Upload failed')
+  return url
+}
+
 export function ImageField({
   label,
   value,
@@ -162,20 +181,7 @@ export function ImageField({
   const upload = async (file: File) => {
     setUploading(true)
     try {
-      const formData = new FormData()
-      formData.set('file', file)
-      const res = await fetch('/api/images/upload', {
-        method: 'POST',
-        credentials: 'include',
-        body: formData,
-      })
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        throw new Error(data.error || 'Upload failed')
-      }
-      const data = await res.json()
-      const url = data.url ?? (data.fileId ? `/api/images/${data.fileId}` : null)
-      if (url) onChange(url)
+      onChange(await uploadImage(file))
     } catch (err) {
       console.error(err)
       onError(err instanceof Error ? err.message : 'Image upload failed')

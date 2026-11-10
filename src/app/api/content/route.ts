@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import jwt from 'jsonwebtoken'
+import { DEV_ADMIN, DEV_AUTH_BYPASS } from '@/lib/dev-auth'
 import {
   getPageContent,
   getLegacyPageContent,
@@ -30,6 +31,7 @@ interface JwtPayload {
 }
 
 function getUserFromRequest(req: NextRequest): JwtPayload | null {
+  if (DEV_AUTH_BYPASS) return DEV_ADMIN
   try {
     const token = req.cookies.get('auth')?.value
     if (!token) return null

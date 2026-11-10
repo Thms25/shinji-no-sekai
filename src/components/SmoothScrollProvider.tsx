@@ -1,7 +1,7 @@
 'use client'
 
 import Lenis from 'lenis'
-import { usePathname } from 'next/navigation'
+import { usePathname } from '@/i18n/navigation'
 import { useReducedMotion } from 'framer-motion'
 import {
   createContext,
@@ -46,6 +46,8 @@ type ScrollTarget = string | HTMLElement | number
 type SmoothScrollValue = {
   /** Scrolls to a target. Falls back to native scrolling when damping is off. */
   scrollTo: (target: ScrollTarget) => void
+  /** Freezes the page under an overlay (lightbox) and releases it again. */
+  setLocked: (locked: boolean) => void
 }
 
 function nativeScrollTo(
@@ -65,6 +67,7 @@ function nativeScrollTo(
 
 const SmoothScrollContext = createContext<SmoothScrollValue>({
   scrollTo: target => nativeScrollTo(target),
+  setLocked: () => {},
 })
 
 export function useSmoothScroll() {
@@ -72,19 +75,20 @@ export function useSmoothScroll() {
 }
 
 /**
- * Damped page scrolling for the public single-page site.
+ * Damped page scrolling for the public pages (home and projects).
  *
  * Lenis drives the real window scroll (rather than transforming a wrapper), so the
  * sticky hero and the fixed navbar keep behaving normally. It is deliberately scoped
- * to `/`: the admin console and artist portal are forms and tables, where anything
+ * to `/` and `/projects`: the admin console and artist portal are forms and tables, where anything
  * other than the browser's own scrolling gets in the way.
  */
 export function SmoothScrollProvider({ children }: { children: ReactNode }) {
+  // Without the locale prefix: `/en/projects` reads as `/projects`.
   const pathname = usePathname()
   const reduceMotion = useReducedMotion()
   const lenisRef = useRef<Lenis | null>(null)
 
-  const enabled = pathname === '/' && !reduceMotion
+  const enabled = (pathname === '/' || pathname === '/projects') && !reduceMotion
 
   useEffect(() => {
     if (!enabled) return
@@ -111,6 +115,33 @@ export function SmoothScrollProvider({ children }: { children: ReactNode }) {
     }
   }, [enabled])
 
+  // A link to another page starts at its top. Lenis lives on across `/` and
+  // `/projects`, so without this it keeps (and glides back to) the old page's
+  // position. Back and forward are left alone: the browser restores those.
+  const fromHistory = useRef(false)
+  useEffect(() => {
+    const onPop = () => {
+      fromHistory.current = true
+    }
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [])
+
+  const firstPath = useRef(true)
+  useEffect(() => {
+    if (firstPath.current) {
+      firstPath.current = false
+      return
+    }
+    if (fromHistory.current) {
+      fromHistory.current = false
+      return
+    }
+    if (window.location.hash) return
+    lenisRef.current?.scrollTo(0, { immediate: true, force: true })
+    window.scrollTo(0, 0)
+  }, [pathname])
+
   const scrollTo = useCallback(
     (target: ScrollTarget) => {
       const lenis = lenisRef.current
@@ -130,8 +161,16 @@ export function SmoothScrollProvider({ children }: { children: ReactNode }) {
     [reduceMotion],
   )
 
+  // Lenis listens to the wheel itself, so `overflow: hidden` alone would not hold
+  // the page still — it has to be stopped too.
+  const setLocked = useCallback((locked: boolean) => {
+    document.documentElement.style.overflow = locked ? 'hidden' : ''
+    if (locked) lenisRef.current?.stop()
+    else lenisRef.current?.start()
+  }, [])
+
   return (
-    <SmoothScrollContext.Provider value={{ scrollTo }}>
+    <SmoothScrollContext.Provider value={{ scrollTo, setLocked }}>
       {children}
     </SmoothScrollContext.Provider>
   )
