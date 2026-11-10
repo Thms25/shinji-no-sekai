@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
 import { Instrument_Serif, Zen_Kaku_Gothic_New, JetBrains_Mono } from 'next/font/google'
-import { cookies } from 'next/headers'
+import { getLocale } from 'next-intl/server'
 import { SHARE_IMAGE } from '@/utils/content/home-defaults'
+import { SITE_URL } from '@/lib/seo'
 import './globals.css'
 
 const instrumentSerif = Instrument_Serif({
@@ -32,16 +33,16 @@ const jetbrainsMono = JetBrains_Mono({
 
 // Link previews need absolute image URLs, hence `metadataBase`. The tab icons are the
 // file-based `icon.png` / `apple-icon.png` next to this layout; the home page
-// overrides the description with the live About copy.
+// and projects page set their own titles, descriptions and language URLs (src/lib/seo.ts).
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://sekai-studios.com'),
-  title: 'Shinji No Sekai | Audio Engineer',
+  metadataBase: new URL(SITE_URL),
+  title: 'Shinji Hashimoto — Sound Engineer in Brussels | Sekai Studios',
   description:
     'Shinji Hashimoto — recording, mixing and FOH engineer based in Brussels. Studio and stage.',
   openGraph: {
     type: 'website',
     siteName: 'Sekai Studios',
-    title: 'Shinji No Sekai | Audio Engineer',
+    title: 'Shinji Hashimoto — Sound Engineer in Brussels | Sekai Studios',
     images: [SHARE_IMAGE],
   },
 }
@@ -51,8 +52,9 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const cookieStore = await cookies()
-  const locale = cookieStore.get('locale')?.value ?? 'fr'
+  // The page's own language (from its URL), not the visitor's cookie: an English
+  // page is lang="en" even on a first visit.
+  const locale = await getLocale()
 
   return (
     <html lang={locale}>

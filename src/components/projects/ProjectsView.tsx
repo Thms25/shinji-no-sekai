@@ -33,22 +33,34 @@ function markReady(img: HTMLImageElement | null) {
 function WallTile({
   project,
   index,
+  locale,
   onOpen,
   onPoint,
 }: {
   project: ProjectItem
   index: number
+  locale: SiteLocale
   onOpen: (index: number) => void
   onPoint: (index: number) => void
 }) {
   const t = useTranslations('projects')
   const cover = project.images[0]
   const develop = index < DEVELOPED
+  // The credit line stays in the page as text (for screen readers and search),
+  // though the wall itself shows only the cover.
+  const credit = [project.meta[locale] || project.meta.en, project.year].filter(Boolean).join(', ')
+  const creditId = `credit-${project.id}`
 
   return (
     <li>
+      {credit && (
+        <span id={creditId} className="sr-only">
+          {credit}
+        </span>
+      )}
       <button
         type="button"
+        aria-describedby={credit ? creditId : undefined}
         onClick={() => onOpen(index)}
         onMouseEnter={() => onPoint(index)}
         onFocus={() => onPoint(index)}
@@ -238,25 +250,15 @@ export default function ProjectsView({ content, locale }: ProjectsViewProps) {
         aria-labelledby="projects-title"
         className="relative z-[1] px-4 pt-8 pb-24 sm:px-6 lg:px-12 lg:pt-12 lg:pb-36 xl:px-22"
       >
-        {/* ── Title bar: the name, the count, the view ────────────────────── */}
+        {/* ── Title bar: the name and the view ────────────────────────────── */}
         <div className="mb-6 flex items-end justify-between gap-4 lg:mb-9">
-          <div className="flex items-start gap-2.5 lg:gap-3.5">
-            <RiseText
-              as="h1"
-              onLoad
-              className="font-title text-[46px] leading-[.95] tracking-[-.035em] lg:text-[76px] lg:leading-[.9]"
-            >
-              <span id="projects-title">{pick(projectsPage.title)}</span>
-            </RiseText>
-            <motion.span
-              initial={reduceMotion ? false : { opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.45 }}
-              className="font-caption mt-1 text-[11px] tracking-[.16em] text-secondary tabular-nums lg:mt-2 lg:text-[13px]"
-            >
-              {pad(total)}
-            </motion.span>
-          </div>
+          <RiseText
+            as="h1"
+            onLoad
+            className="font-title text-[46px] leading-[.95] tracking-[-.035em] lg:text-[76px] lg:leading-[.9]"
+          >
+            <span id="projects-title">{pick(projectsPage.title)}</span>
+          </RiseText>
 
           {total > 0 && (
             <div
@@ -304,6 +306,7 @@ export default function ProjectsView({ content, locale }: ProjectsViewProps) {
                 key={project.id}
                 project={project}
                 index={index}
+                locale={locale}
                 onOpen={setOpened}
                 onPoint={setPointed}
               />

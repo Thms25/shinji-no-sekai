@@ -1,7 +1,7 @@
 'use client'
 
 import Lenis from 'lenis'
-import { usePathname } from 'next/navigation'
+import { usePathname } from '@/i18n/navigation'
 import { useReducedMotion } from 'framer-motion'
 import {
   createContext,
@@ -83,6 +83,7 @@ export function useSmoothScroll() {
  * other than the browser's own scrolling gets in the way.
  */
 export function SmoothScrollProvider({ children }: { children: ReactNode }) {
+  // Without the locale prefix: `/en/projects` reads as `/projects`.
   const pathname = usePathname()
   const reduceMotion = useReducedMotion()
   const lenisRef = useRef<Lenis | null>(null)

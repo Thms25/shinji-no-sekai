@@ -10,10 +10,10 @@ import type {
 export type SiteLocale = 'en' | 'fr'
 
 /**
- * Link-preview image: a square crop of the default About portrait (WhatsApp and
- * iMessage show previews square). Static, so it does not follow admin uploads.
+ * Link-preview image: name, role and portrait on the site's cream, at the 1200×630
+ * every network shows as a large card. Static, so it does not follow admin uploads.
  */
-export const SHARE_IMAGE = { url: '/images/og-portrait.jpg', width: 377, height: 377 }
+export const SHARE_IMAGE = { url: '/images/og-share.jpg', width: 1200, height: 630 }
 
 /**
  * Fallback copy for the whole public page. Used whenever the `home` document is
