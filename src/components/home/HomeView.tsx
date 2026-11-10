@@ -257,12 +257,7 @@ export default function HomeView({ content, locale }: HomeViewProps) {
                 href="/projects"
                 className="group font-caption inline-flex w-full items-center justify-between gap-4 rounded-full bg-foreground py-2 pr-2 pl-6 text-[11px] uppercase tracking-[.18em] text-background transition-[opacity,transform] duration-150 hover:-translate-y-px active:translate-y-px active:scale-[.985] lg:w-auto lg:gap-8 lg:pl-8 lg:text-xs"
               >
-                <span>
-                  {t(studio.moreLabel)}
-                  <span className="ml-3 text-background/55">
-                    {String(projects.length).padStart(2, '0')}
-                  </span>
-                </span>
+                <span>{t(studio.moreLabel)}</span>
                 <span className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-foreground lg:h-12 lg:w-12">
                   <ArrowRight
                     size={18}

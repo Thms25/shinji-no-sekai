@@ -237,9 +237,6 @@ export function ProjectSheet({
                   >
                     <ArrowLeft size={17} strokeWidth={1.6} />
                   </button>
-                  <span className="font-caption text-[10px] tracking-[.22em] text-secondary tabular-nums lg:text-[11px]">
-                    {pad(index + 1)} / {pad(projects.length)}
-                  </span>
                   <button
                     type="button"
                     onClick={() => onStep(1)}
