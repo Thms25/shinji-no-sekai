@@ -3,8 +3,8 @@
 import { useState } from 'react'
 import { ChevronDown, ChevronUp, Plus, Trash2 } from 'lucide-react'
 import type { CreditItem } from '@/utils/db/content'
-import { EMPTY_CREDIT_ITEM, type SiteLocale } from '@/utils/content/home-defaults'
-import { ImageField, LocalizedField, TextField } from './fields'
+import { EMPTY_CREDIT_ITEM, emptyCreditLine, type SiteLocale } from '@/utils/content/home-defaults'
+import { CreditLinesField, ImageField, TextField } from './fields'
 import { ghostButtonClasses } from './form-styles'
 
 type CreditItemsEditorProps = {
@@ -19,7 +19,7 @@ type CreditItemsEditorProps = {
 
 /**
  * Shared editor for the studio and live credit lists — both render the same
- * {image, artist, meta, year, url} card on the public page.
+ * {image, artist, credits, year, url} card on the public page.
  */
 export function CreditItemsEditor({
   items,
@@ -137,12 +137,14 @@ export function CreditItemsEditor({
                     placeholder="e.g. 2026"
                   />
                 </div>
-                <LocalizedField
-                  label="Credit line"
-                  value={item.meta}
+                <CreditLinesField
+                  credits={item.credits}
                   locale={locale}
-                  onChange={meta => update(index, { meta })}
-                  placeholder="e.g. Album: Movie — Mixing / Atmos"
+                  onChange={credits => update(index, { credits })}
+                  placeholders={[
+                    { credit: 'e.g. Summer Tour', role: 'e.g. FOH' },
+                    { credit: 'e.g. Festival season', role: 'e.g. Monitors' },
+                  ]}
                 />
                 <TextField
                   label="Link"
@@ -160,7 +162,7 @@ export function CreditItemsEditor({
       <button
         type="button"
         onClick={() => {
-          onChange([...items, { ...EMPTY_CREDIT_ITEM, meta: { en: '', fr: '' } }])
+          onChange([...items, { ...EMPTY_CREDIT_ITEM, credits: [emptyCreditLine()] }])
           setOpenIndex(items.length)
         }}
         className={ghostButtonClasses}

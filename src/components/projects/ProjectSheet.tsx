@@ -6,10 +6,11 @@ import { useTranslations } from 'next-intl'
 import { useEffect, useRef, useState } from 'react'
 import { useSmoothScroll } from '@/components/SmoothScrollProvider'
 import type { Localized, ProjectItem } from '@/utils/db/content'
-import type { SiteLocale } from '@/utils/content/home-defaults'
+import { creditLines, type SiteLocale } from '@/utils/content/home-defaults'
+import { Credits } from '@/components/Credits'
 import { EASE_ENTER } from './motion'
 
-export const pad = (value: number) => String(value).padStart(2, '0')
+const pad = (value: number) => String(value).padStart(2, '0')
 
 const CONTROL =
   'flex h-11 w-11 items-center justify-center rounded-full text-foreground transition-transform duration-150 hover:-translate-y-px active:translate-y-px active:scale-[.985]'
@@ -136,7 +137,7 @@ export function ProjectSheet({
   }, [isOpen, onClose, onStep, setLocked])
 
   const story = project ? pick(project.story) : ''
-  const meta = project ? pick(project.meta) : ''
+  const credits = project ? creditLines(project.credits, locale) : []
 
   return (
     <AnimatePresence>
@@ -184,15 +185,11 @@ export function ProjectSheet({
                   transition={{ duration: 0.3, ease: EASE_ENTER }}
                   className="grid gap-5 lg:gap-6"
                 >
-                  <p className="font-caption flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] tracking-[.22em] text-secondary lg:text-[11px]">
-                    <span>N°{pad(index + 1)}</span>
-                    {project.year && (
-                      <>
-                        <span aria-hidden className="h-px w-5 bg-border" />
-                        <span>{project.year}</span>
-                      </>
-                    )}
-                  </p>
+                  {project.year && (
+                    <p className="font-caption text-[10px] tracking-[.22em] text-secondary lg:text-[11px]">
+                      {project.year}
+                    </p>
+                  )}
                   <div className="grid gap-3">
                     <h2
                       id="project-sheet-title"
@@ -200,9 +197,10 @@ export function ProjectSheet({
                     >
                       {project.title || '—'}
                     </h2>
-                    {meta && (
-                      <p className="text-sm font-light leading-[1.55] text-secondary lg:text-[15px]">{meta}</p>
-                    )}
+                    <Credits
+                      lines={credits}
+                      className="grid gap-1.5 text-sm font-light leading-[1.55] text-secondary lg:text-[15px]"
+                    />
                   </div>
                   {story && (
                     <p className="text-[15px] font-light leading-[1.85] whitespace-pre-line text-prose lg:text-base">

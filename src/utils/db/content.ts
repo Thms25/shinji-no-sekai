@@ -42,10 +42,19 @@ export interface PrincipleItem {
   body: Localized
 }
 
+/** One credit: what the work was, and what Shinji did on it. */
+export interface CreditLine {
+  /** The release, tour or show, e.g. "Album: Movie", "Summer Tour". */
+  credit: Localized
+  /** Shinji's role on it, e.g. "Mixing / Atmos", "FOH". */
+  role: Localized
+}
+
 export interface CreditItem {
   image: string
   artist: string
-  meta: Localized
+  /** Credit lines, one per role. Stored as a single `meta` string before; split on read. */
+  credits: CreditLine[]
   year: string
   /** Optional — turns the card into a link out. */
   url?: string
@@ -61,8 +70,11 @@ export interface ProjectItem {
   id: string
   /** The artist or project name — the entry's heading. */
   title: string
-  /** Credit line, e.g. "Album: Movie — Mixing / Atmos". */
-  meta: Localized
+  /**
+   * Credit lines, one per release or role, e.g. credit "Album: Movie", role
+   * "Mixing / Atmos". Stored as a single `meta` string before; split on read.
+   */
+  credits: CreditLine[]
   /** Free text ("2026", "2023 — 2026"), shown as a tag; "Order by date" sorts on it. */
   year: string
   /** A few lines about the moment, shown on the projects page only. */
