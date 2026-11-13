@@ -20,7 +20,7 @@ import {
   projectYear,
   type SiteLocale,
 } from '@/utils/content/home-defaults'
-import { LocalizedField, TextField, uploadImage } from './fields'
+import { CreditLinesField, LocalizedField, TextField, uploadImage } from './fields'
 import { ghostButtonClasses, labelClasses } from './form-styles'
 
 /* ── Photo set ─────────────────────────────────────────────────────────────── */
@@ -267,12 +267,10 @@ function ProjectRow({
               placeholder="e.g. 2026"
             />
           </div>
-          <LocalizedField
-            label="Credit line"
-            value={project.meta}
+          <CreditLinesField
+            credits={project.credits}
             locale={locale}
-            onChange={meta => onChange({ meta })}
-            placeholder="e.g. Album: Movie — Mixing / Atmos"
+            onChange={credits => onChange({ credits })}
           />
           <LocalizedField
             label="Story"

@@ -1,5 +1,5 @@
 import { getPageContent } from '@/utils/db/content'
-import { normalizeHomeContent } from '@/utils/content/home-defaults'
+import { creditLines, creditText, normalizeHomeContent } from '@/utils/content/home-defaults'
 import { localePath, orderedProjects, SITE_URL } from '@/lib/seo'
 
 // Written from the same document as the pages, so it never drifts from them.
@@ -18,11 +18,11 @@ export async function GET() {
 
   const projects = orderedProjects(content.projects).map(project => {
     const story = project.story.en || project.story.fr
-    return `- ${line([project.title, project.meta.en || project.meta.fr, project.year])}${
+    return `- ${line([project.title, creditLines(project.credits, 'en').map(creditText).join('; '), project.year])}${
       project.url ? ` (${project.url})` : ''
     }${story ? `\n  ${story.replace(/\s+/g, ' ')}` : ''}`
   })
-  const liveWork = live.items.map(item => `- ${line([item.artist, item.meta.en || item.meta.fr, item.year])}`)
+  const liveWork = live.items.map(item => `- ${line([item.artist, creditLines(item.credits, 'en').map(creditText).join('; '), item.year])}`)
 
   const body = `# ${name} — Sekai Studios
 

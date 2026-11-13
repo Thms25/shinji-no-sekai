@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
-import type { HomePageContent, Localized, ProjectItem } from '@/utils/db/content'
-import { SHARE_IMAGE, type SiteLocale } from '@/utils/content/home-defaults'
+import type { CreditLine, HomePageContent, Localized, ProjectItem } from '@/utils/db/content'
+import { emptyCreditLine, SHARE_IMAGE, type SiteLocale } from '@/utils/content/home-defaults'
 
 /**
  * Search and AI-search plumbing shared by the pages, the sitemap and llms.txt.
@@ -99,23 +99,11 @@ const RELEASE_TYPES = {
   single: 'SingleRelease',
 } as const
 
-const ROLE_WORDS =
-  /\b(mix\w*|record\w*|prise de son|master\w*|atmos|foh|façade|facade|produc\w*|engineer\w*|ingé\w*|edit\w*|arrang\w*)\b/i
-
-/**
- * Reads a credit line written the admin's way, "Album: MOVIE — Mixing / Atmos",
- * into its parts. Anything else is kept whole as the role-less release name.
- */
-export function parseCredit(meta: string) {
-  const match = meta.match(/^\s*(album|ep|single)\s*:\s*(.+?)(?:\s+[—–-]\s+(.+))?\s*$/i)
-  if (!match) return { kind: null, release: meta.trim(), role: '' }
-  const kind = match[1].toLowerCase() as keyof typeof RELEASE_TYPES
-  const tail = (match[3] ?? '').trim()
-  // The part after the dash is a role only when it names one; otherwise (track
-  // names after an EP, say) it still belongs to the release.
-  return ROLE_WORDS.test(tail)
-    ? { kind, release: match[2].trim(), role: tail }
-    : { kind, release: [match[2].trim(), tail].filter(Boolean).join(' — '), role: '' }
+/** Reads a credit written the admin's way, "Album: MOVIE", into its kind and name. */
+export function parseRelease(credit: string) {
+  const match = credit.match(/^\s*(album|ep|single)\s*:\s*(.+?)\s*$/i)
+  if (!match) return { kind: null, release: credit.trim() }
+  return { kind: match[1].toLowerCase() as keyof typeof RELEASE_TYPES, release: match[2] }
 }
 
 /** Projects in the order the page shows them: the home-page picks, then the rest. */
@@ -170,7 +158,8 @@ export function identityGraph(content: HomePageContent, locale: SiteLocale) {
       name: 'Sekai Studios',
       legalName: 'Sekai Studios SRL',
       url: SITE_URL,
-      logo: absolute('/images/sekai_studios_logo.svg'),
+      // The site's favicon (src/app/icon.png), the brand mark used everywhere.
+      logo: absolute('/icon.png'),
       image: absolute(SHARE_IMAGE.url),
       email: cta.email || undefined,
       founder: { '@id': PERSON_ID },
@@ -200,19 +189,22 @@ export function identityGraph(content: HomePageContent, locale: SiteLocale) {
   ]
 }
 
-/** One release, credited to Shinji in the role its credit line names. */
-function projectNode(project: ProjectItem, locale: SiteLocale) {
-  const credit = parseCredit(project.meta.en || project.meta.fr)
-  const localCredit = parseCredit(pick(project.meta, locale))
+/** One credit line's release, credited to Shinji in the role the line names. */
+function projectNode(project: ProjectItem, line: CreditLine, locale: SiteLocale) {
+  const credit = parseRelease(line.credit.en || line.credit.fr)
+  const role = pick(line.role, locale)
+  const text = [pick(line.credit, locale), role].filter(Boolean).join(' — ')
   const story = pick(project.story, locale)
   const base = {
     image: project.images.map(absolute),
     url: project.url || undefined,
     datePublished: project.year || undefined,
-    description: [`${project.title} — ${pick(project.meta, locale)}`, story].filter(Boolean).join('. '),
+    description: [[project.title, text].filter(Boolean).join(' — '), story]
+      .filter(Boolean)
+      .join('. '),
     contributor: {
       '@type': 'Role',
-      roleName: localCredit.role || credit.role || undefined,
+      roleName: role || undefined,
       contributor: { '@id': PERSON_ID },
     },
   }
@@ -231,7 +223,15 @@ function projectNode(project: ProjectItem, locale: SiteLocale) {
 
 /** The projects page: every release, in the page's order, as a list. */
 export function projectsGraph(content: HomePageContent, locale: SiteLocale) {
-  const projects = orderedProjects(content.projects)
+  // A project with several credit lines lists each release on its own.
+  const releases = orderedProjects(content.projects).flatMap(project => {
+    const lines = project.credits.filter(line =>
+      [line.credit.en, line.credit.fr, line.role.en, line.role.fr].some(text => text.trim()),
+    )
+    return (lines.length > 0 ? lines : [emptyCreditLine()]).map(line =>
+      projectNode(project, line, locale),
+    )
+  })
   const url = `${SITE_URL}${localePath(locale, '/projects')}`
   return [
     {
@@ -245,11 +245,11 @@ export function projectsGraph(content: HomePageContent, locale: SiteLocale) {
       about: { '@id': PERSON_ID },
       mainEntity: {
         '@type': 'ItemList',
-        numberOfItems: projects.length,
-        itemListElement: projects.map((project, index) => ({
+        numberOfItems: releases.length,
+        itemListElement: releases.map((release, index) => ({
           '@type': 'ListItem',
           position: index + 1,
-          item: projectNode(project, locale),
+          item: release,
         })),
       },
     },

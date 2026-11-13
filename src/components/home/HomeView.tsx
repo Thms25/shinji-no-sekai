@@ -4,10 +4,12 @@ import { ArrowRight, Instagram } from 'lucide-react'
 import { Link } from '@/i18n/navigation'
 import type { CreditItem, HomePageContent, Localized } from '@/utils/db/content'
 import {
+  creditLines,
   featuredProjects,
   PRINCIPLE_NUMERALS,
   type SiteLocale,
 } from '@/utils/content/home-defaults'
+import { Credits } from '@/components/Credits'
 import { AccentBlob } from './AccentBlob'
 import { LightboxProvider, useLightbox } from './Lightbox'
 import { Reveal, staggerDelay } from './Reveal'
@@ -63,7 +65,7 @@ export default function HomeView({ content, locale }: HomeViewProps) {
   const studioItems: CreditItem[] = featuredProjects(projects).map(project => ({
     image: project.images[0] ?? '',
     artist: project.title,
-    meta: project.meta,
+    credits: project.credits,
     year: project.year,
     url: project.url,
   }))
@@ -236,9 +238,10 @@ export default function HomeView({ content, locale }: HomeViewProps) {
                         item.artist
                       )}
                     </div>
-                    <div className="mt-1.5 text-[13px] font-light leading-[1.5] text-secondary">
-                      {t(item.meta)}
-                    </div>
+                    <Credits
+                      lines={creditLines(item.credits, locale)}
+                      className="mt-1.5 grid gap-1 text-[13px] font-light leading-[1.5] text-secondary"
+                    />
                     <div className="font-caption mt-2 text-[10px] tracking-[.2em] text-secondary lg:hidden">
                       {item.year}
                     </div>
@@ -348,9 +351,10 @@ export default function HomeView({ content, locale }: HomeViewProps) {
                       item.artist
                     )}
                   </div>
-                  <div className="mt-1 text-xs font-light leading-[1.5] text-secondary lg:mt-1.5 lg:text-[13px]">
-                    {t(item.meta)}
-                  </div>
+                  <Credits
+                    lines={creditLines(item.credits, locale)}
+                    className="mt-1 grid gap-1 text-xs font-light leading-[1.5] text-secondary lg:mt-1.5 lg:text-[13px]"
+                  />
                   {item.year && (
                     <div className="font-caption mt-1.5 text-[10px] tracking-[.2em] text-secondary lg:mt-2 lg:text-[11px] lg:tracking-[.16em]">
                       {item.year}

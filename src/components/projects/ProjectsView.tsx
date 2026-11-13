@@ -5,9 +5,10 @@ import { ArrowUpRight, Images, Instagram, LayoutGrid, List } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useCallback, useState, type CSSProperties } from 'react'
 import type { HomePageContent, Localized, ProjectItem } from '@/utils/db/content'
-import type { SiteLocale } from '@/utils/content/home-defaults'
+import { creditLines, creditText, type SiteLocale } from '@/utils/content/home-defaults'
+import { Credits } from '@/components/Credits'
 import { EASE_ENTER, RiseText } from './motion'
-import { pad, ProjectSheet } from './ProjectSheet'
+import { ProjectSheet } from './ProjectSheet'
 
 type ProjectsViewProps = {
   content: HomePageContent
@@ -48,7 +49,7 @@ function WallTile({
   const develop = index < DEVELOPED
   // The credit line stays in the page as text (for screen readers and search),
   // though the wall itself shows only the cover.
-  const credit = [project.meta[locale] || project.meta.en, project.year].filter(Boolean).join(', ')
+  const credit = [creditLines(project.credits, locale).map(creditText).join('; '), project.year].filter(Boolean).join(', ')
   const creditId = `credit-${project.id}`
 
   return (
@@ -104,16 +105,14 @@ function WallTile({
  */
 function Readout({
   project,
-  number,
   locale,
 }: {
   project: ProjectItem | null
-  number: number
   locale: SiteLocale
 }) {
   const t = useTranslations('projects')
   const reduceMotion = useReducedMotion()
-  const meta = project ? project.meta[locale] || project.meta.en : ''
+  const credits = project ? creditLines(project.credits, locale) : []
 
   return (
     <div aria-hidden className="pointer-events-none fixed inset-x-0 bottom-6 z-40 hidden justify-center px-6 lg:flex">
@@ -124,11 +123,8 @@ function Readout({
             animate={{ opacity: 1, y: 0 }}
             exit={reduceMotion ? undefined : { opacity: 0, y: 10 }}
             transition={{ duration: 0.3, ease: EASE_ENTER }}
-            className="flex max-w-[760px] items-center gap-4 overflow-hidden rounded-full bg-foreground py-3 pr-6 pl-3 text-background shadow-[0_18px_40px_rgba(30,22,14,.28)]"
+            className="flex max-w-[760px] items-center overflow-hidden rounded-full bg-foreground px-7 py-4 text-background shadow-[0_18px_40px_rgba(30,22,14,.28)]"
           >
-            <span className="font-caption shrink-0 rounded-full bg-background/12 px-3 py-1.5 text-[10px] tracking-[.2em] tabular-nums">
-              N°{pad(number)}
-            </span>
             <AnimatePresence mode="popLayout" initial={false}>
               <motion.span
                 key={project.id}
@@ -139,7 +135,11 @@ function Readout({
                 className="flex min-w-0 items-baseline gap-3"
               >
                 <span className="font-title truncate text-[22px] leading-none">{project.title}</span>
-                {meta && <span className="truncate text-[13px] font-light text-background/65">{meta}</span>}
+                <Credits
+                  inline
+                  lines={credits}
+                  className="truncate text-[13px] font-light text-background/65"
+                />
                 {project.images.length > 1 && (
                   <span className="font-caption shrink-0 text-[10px] tracking-[.16em] text-background/65">
                     {t('photos', { count: project.images.length })}
@@ -168,7 +168,7 @@ function IndexRow({
   onOpen: (index: number) => void
 }) {
   const t = useTranslations('projects')
-  const meta = project.meta[locale] || project.meta.en
+  const credits = creditLines(project.credits, locale)
   const cover = project.images[0]
 
   return (
@@ -177,7 +177,7 @@ function IndexRow({
         type="button"
         onClick={() => onOpen(index)}
         aria-label={t('open', { title: project.title || '—' })}
-        className="group grid w-full grid-cols-[52px_minmax(0,1fr)_auto] items-center gap-4 py-3 text-left transition-colors duration-200 hover:bg-subtle focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground lg:grid-cols-[56px_64px_minmax(0,1.1fr)_minmax(0,1fr)_72px_20px] lg:gap-6 lg:rounded-[14px] lg:px-3"
+        className="group grid w-full grid-cols-[52px_minmax(0,1fr)_auto] items-center gap-4 py-3 text-left transition-colors duration-200 hover:bg-subtle focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground lg:grid-cols-[56px_minmax(0,1.1fr)_minmax(0,1fr)_72px_20px] lg:gap-6 lg:rounded-[14px] lg:px-3"
       >
         <span className="block aspect-square overflow-hidden rounded-[6px] bg-card">
           {cover && (
@@ -190,18 +190,19 @@ function IndexRow({
             />
           )}
         </span>
-        <span className="font-caption hidden text-[10px] tracking-[.2em] text-secondary tabular-nums lg:block">
-          N°{pad(index + 1)}
-        </span>
         <span className="min-w-0">
           <span className="font-title block truncate text-[21px] leading-tight lg:text-[26px]">
             {project.title || '—'}
           </span>
-          {meta && (
-            <span className="mt-0.5 block truncate text-[13px] font-light text-secondary lg:hidden">{meta}</span>
+          {credits.length > 0 && (
+            <Credits
+              inline
+              lines={credits}
+              className="mt-0.5 block truncate text-[13px] font-light text-secondary lg:hidden"
+            />
           )}
         </span>
-        <span className="hidden truncate text-sm font-light text-secondary lg:block">{meta}</span>
+        <Credits inline lines={credits} className="hidden truncate text-sm font-light text-secondary lg:block" />
         <span className="font-caption text-[10px] tracking-[.18em] text-secondary tabular-nums lg:text-[11px]">
           {project.year}
         </span>
@@ -324,7 +325,6 @@ export default function ProjectsView({ content, locale }: ProjectsViewProps) {
       {view === 'wall' && opened === null && (
         <Readout
           project={pointed !== null ? (projects[pointed] ?? null) : null}
-          number={(pointed ?? 0) + 1}
           locale={locale}
         />
       )}

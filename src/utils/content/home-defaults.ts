@@ -1,5 +1,6 @@
 import type {
   CreditItem,
+  CreditLine,
   HomePageContent,
   LegacyContent,
   Localized,
@@ -87,7 +88,7 @@ export const DEFAULT_HOME_CONTENT: HomePageContent = {
     {
       id: 'sofiane-pamart-movie',
       title: 'Sofiane Pamart',
-      meta: { en: 'Album: Movie — Mixing / Atmos', fr: 'Album : Movie — Mixage / Atmos' },
+      credits: [{ credit: { en: 'Album: Movie', fr: 'Album : Movie' }, role: { en: 'Mixing / Atmos', fr: 'Mixage / Atmos' } }],
       year: '2026',
       story: { en: '', fr: '' },
       images: [],
@@ -97,7 +98,7 @@ export const DEFAULT_HOME_CONTENT: HomePageContent = {
     {
       id: 'krisy-edward-risky',
       title: 'Krisy',
-      meta: { en: 'Album: Edward Risky — Mixing', fr: 'Album : Edward Risky — Mixage' },
+      credits: [{ credit: { en: 'Album: Edward Risky', fr: 'Album : Edward Risky' }, role: { en: 'Mixing', fr: 'Mixage' } }],
       year: '2026',
       story: { en: '', fr: '' },
       images: [],
@@ -107,7 +108,7 @@ export const DEFAULT_HOME_CONTENT: HomePageContent = {
     {
       id: 'lous-no-big-deal',
       title: 'Lous & The Yakuza',
-      meta: { en: 'EP: No Big Deal — Recording', fr: 'EP : No Big Deal — Prise de son' },
+      credits: [{ credit: { en: 'EP: No Big Deal', fr: 'EP : No Big Deal' }, role: { en: 'Recording', fr: 'Prise de son' } }],
       year: '2025',
       story: { en: '', fr: '' },
       images: [],
@@ -140,28 +141,30 @@ export const DEFAULT_HOME_CONTENT: HomePageContent = {
       {
         image: '',
         artist: 'Pierre de Maere',
-        meta: { en: 'Regarde-Moi Tour — Monitors', fr: 'Regarde-Moi Tour — Retours' },
+        credits: [{ credit: { en: 'Regarde-Moi Tour', fr: 'Regarde-Moi Tour' }, role: { en: 'Monitors', fr: 'Retours' } }],
         year: '2023',
       },
       {
         image: '',
         artist: 'Camille Yembe',
-        meta: { en: 'Summer Tour — FOH', fr: 'Summer Tour — Façade' },
+        credits: [{ credit: { en: 'Summer Tour', fr: 'Summer Tour' }, role: { en: 'FOH', fr: 'Façade' } }],
         year: '2025',
       },
       {
         image: '',
         artist: 'Krisy',
-        meta: { en: 'Edward Risky Tour — FOH', fr: 'Edward Risky Tour — Façade' },
+        credits: [{ credit: { en: 'Edward Risky Tour', fr: 'Edward Risky Tour' }, role: { en: 'FOH', fr: 'Façade' } }],
         year: '2025',
       },
       {
         image: '',
         artist: 'Tomorrowland',
-        meta: {
-          en: 'Broadcast mixing — via NoizBoyz',
-          fr: 'Mixage broadcast — via NoizBoyz',
-        },
+        credits: [
+          {
+            credit: { en: 'via NoizBoyz', fr: 'via NoizBoyz' },
+            role: { en: 'Broadcast mixing', fr: 'Mixage broadcast' },
+          },
+        ],
         year: '2023 — 2026',
       },
     ],
@@ -183,7 +186,7 @@ export const EMPTY_LOCALIZED: Localized = { en: '', fr: '' }
 export const EMPTY_CREDIT_ITEM: CreditItem = {
   image: '',
   artist: '',
-  meta: { en: '', fr: '' },
+  credits: [emptyCreditLine()],
   year: '',
   url: '',
 }
@@ -206,7 +209,7 @@ export function createProject(): ProjectItem {
   return {
     id,
     title: '',
-    meta: { en: '', fr: '' },
+    credits: [emptyCreditLine()],
     year: String(new Date().getFullYear()),
     story: { en: '', fr: '' },
     images: [],
@@ -248,11 +251,70 @@ function creditItem(value: unknown, fallback: CreditItem): CreditItem {
   return {
     image: str(raw.image, fallback.image),
     artist: str(raw.artist, fallback.artist),
-    meta: loc(raw.meta, fallback.meta),
+    credits: readCredits(raw),
     year: str(raw.year, fallback.year),
     url: str(raw.url, fallback.url ?? ''),
   }
 }
+
+/** Words that name an engineer's job, in either language. */
+const ROLE_WORDS =
+  /(mix|record|prise de son|master|atmos|foh|façade|facade|retours|monitor|produc|engineer|ingé|edit|arrang|broadcast|live sound|son live)/i
+
+/**
+ * Splits a credit written as one string, "Album: Movie — Mixing / Atmos", into
+ * the work and the role. The side after the last dash is the role when it names
+ * one ("Broadcast mixing — via NoizBoyz" reads the other way round); otherwise
+ * the whole string is the credit.
+ */
+function splitCredit(text: string): { credit: string; role: string } {
+  const match = text.match(/^(.*\S)\s+[—–-]\s+(\S.*)$/)
+  if (!match) return { credit: text.trim(), role: '' }
+  const [, head, tail] = match
+  if (ROLE_WORDS.test(tail)) return { credit: head.trim(), role: tail.trim() }
+  if (ROLE_WORDS.test(head)) return { credit: tail.trim(), role: head.trim() }
+  return { credit: text.trim(), role: '' }
+}
+
+function splitLocalized(value: Localized): CreditLine {
+  const en = splitCredit(value.en)
+  const fr = splitCredit(value.fr)
+  return { credit: { en: en.credit, fr: fr.credit }, role: { en: en.role, fr: fr.role } }
+}
+
+export function emptyCreditLine(): CreditLine {
+  return { credit: { en: '', fr: '' }, role: { en: '', fr: '' } }
+}
+
+/**
+ * `credits` as stored. Older entries hold one string per line (or a single
+ * `meta` string); those are split into credit and role on the way in.
+ */
+function readCredits(raw: Record<string, unknown>): CreditLine[] {
+  const stored = Array.isArray(raw.credits) ? raw.credits : [raw.meta]
+  const credits = stored.map(line =>
+    isRecord(line) && ('credit' in line || 'role' in line)
+      ? { credit: loc(line.credit, EMPTY_LOCALIZED), role: loc(line.role, EMPTY_LOCALIZED) }
+      : splitLocalized(loc(line, EMPTY_LOCALIZED)),
+  )
+  return credits.length > 0 ? credits : [emptyCreditLine()]
+}
+
+/** A credit line in one language (English where a field has none). */
+export type CreditText = { credit: string; role: string }
+
+/** The filled-in credit lines in one language. */
+export function creditLines(credits: CreditLine[], locale: SiteLocale): CreditText[] {
+  return credits
+    .map(line => ({
+      credit: (line.credit[locale] || line.credit.en).trim(),
+      role: (line.role[locale] || line.role.en).trim(),
+    }))
+    .filter(line => line.credit || line.role)
+}
+
+/** "Album: Movie — Mixing / Atmos": a credit line as plain text. */
+export const creditText = (line: CreditText) => [line.credit, line.role].filter(Boolean).join(' — ')
 
 function projectItem(value: unknown, index: number): ProjectItem {
   const raw = isRecord(value) ? value : {}
@@ -262,7 +324,7 @@ function projectItem(value: unknown, index: number): ProjectItem {
   return {
     id: str(raw.id, '') || `project-${index}`,
     title: str(raw.title, ''),
-    meta: loc(raw.meta, EMPTY_LOCALIZED),
+    credits: readCredits(raw),
     year: str(raw.year, ''),
     story: loc(raw.story, EMPTY_LOCALIZED),
     images,
@@ -282,7 +344,7 @@ function migrateStudioItems(items: unknown[]): ProjectItem[] {
     return {
       id: `studio-${index}`,
       title: credit.artist,
-      meta: credit.meta,
+      credits: credit.credits,
       year: credit.year,
       story: { ...EMPTY_LOCALIZED },
       images: credit.image ? [credit.image] : [],
@@ -404,7 +466,12 @@ export function migrateLegacyHome(legacy: LegacyContent): Partial<HomePageConten
     patch.projects = legacy.work.artists.map((artist, index) => ({
       id: `legacy-${index}`,
       title: artist.name ?? '',
-      meta: both(artist.description ?? (artist.roles ?? []).join(' · ')),
+      credits: [
+        {
+          credit: both(artist.description ?? ''),
+          role: both((artist.roles ?? []).join(' · ')),
+        },
+      ],
       year: '',
       story: { en: '', fr: '' },
       images: artist.image ? [artist.image] : [],

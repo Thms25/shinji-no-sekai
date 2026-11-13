@@ -1,10 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { Upload as UploadIcon } from 'lucide-react'
-import type { Localized } from '@/utils/db/content'
+import { Plus, Upload as UploadIcon, X } from 'lucide-react'
+import type { CreditLine, Localized } from '@/utils/db/content'
 import type { SiteLocale } from '@/utils/content/home-defaults'
 import {
+  ghostButtonClasses,
   inputClasses,
   inputSmClasses,
   labelClasses,
@@ -136,6 +137,112 @@ export function LocalizedField({
           Empty — the site will fall back to the {other.toUpperCase()} text.
         </p>
       )}
+    </div>
+  )
+}
+
+/* ── Credit lines ──────────────────────────────────────────────────────────── */
+
+type CreditPlaceholder = { credit: string; role: string }
+
+/**
+ * One line per release or role, each in two parts: the credit ("Album: Movie",
+ * "Summer Tour") and Shinji's role on it ("Mixing / Atmos", "FOH"), which the site
+ * sets apart. Empty lines are skipped on the site. Used by the projects and the
+ * live work lists.
+ */
+export function CreditLinesField({
+  credits,
+  locale,
+  onChange,
+  placeholders = [
+    { credit: 'e.g. Album: Movie', role: 'e.g. Mixing / Atmos' },
+    { credit: 'e.g. Single: Rouge', role: 'e.g. Recording' },
+  ],
+}: {
+  credits: CreditLine[]
+  locale: SiteLocale
+  onChange: (credits: CreditLine[]) => void
+  /** For the first line, then for every added one. */
+  placeholders?: [CreditPlaceholder, CreditPlaceholder]
+}) {
+  const other: SiteLocale = locale === 'en' ? 'fr' : 'en'
+  const set = (index: number, field: keyof CreditLine, text: string) =>
+    onChange(
+      credits.map((line, i) =>
+        i === index ? { ...line, [field]: { ...line[field], [locale]: text } } : line,
+      ),
+    )
+  const remove = (index: number) => onChange(credits.filter((_, i) => i !== index))
+  const fallsBack = (value: Localized) => !value[locale].trim() && value[other].trim()
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-baseline justify-between gap-3">
+        <span className={labelClasses}>Credit lines</span>
+        <span className="font-caption text-[10px] uppercase tracking-[.16em] text-muted-foreground/70">
+          {locale}
+        </span>
+      </div>
+      <div
+        aria-hidden
+        className="hidden grid-cols-[minmax(0,3fr)_minmax(0,2fr)_32px] gap-2 md:grid"
+      >
+        <span className={subLabelClasses}>Credit</span>
+        <span className={subLabelClasses}>Role (stands out on the site)</span>
+      </div>
+
+      {credits.map((line, index) => {
+        const hint = placeholders[index === 0 ? 0 : 1]
+        return (
+          <div key={index} className="space-y-1">
+            <div className="grid grid-cols-[minmax(0,1fr)_32px] gap-2 md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)_32px]">
+              <input
+                type="text"
+                value={line.credit[locale]}
+                aria-label={`Credit ${index + 1}`}
+                placeholder={hint.credit}
+                onChange={event => set(index, 'credit', event.target.value)}
+                className={`${inputClasses} col-start-1`}
+              />
+              <input
+                type="text"
+                value={line.role[locale]}
+                aria-label={`Role ${index + 1}`}
+                placeholder={hint.role}
+                onChange={event => set(index, 'role', event.target.value)}
+                className={`${inputClasses} col-start-1 md:col-start-2 md:row-start-1`}
+              />
+              {credits.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => remove(index)}
+                  aria-label={`Remove credit line ${index + 1}`}
+                  className="col-start-2 row-span-2 row-start-1 self-center justify-self-center rounded p-2 text-muted-foreground transition-colors hover:text-foreground md:col-start-3 md:row-span-1"
+                >
+                  <X size={16} />
+                </button>
+              )}
+            </div>
+            {(fallsBack(line.credit) || fallsBack(line.role)) && (
+              <p className="text-xs text-muted-foreground/70">
+                Empty — the site will fall back to the {other.toUpperCase()} text.
+              </p>
+            )}
+          </div>
+        )
+      })}
+
+      <button
+        type="button"
+        onClick={() =>
+          onChange([...credits, { credit: { en: '', fr: '' }, role: { en: '', fr: '' } }])
+        }
+        className={ghostButtonClasses}
+      >
+        <Plus size={14} />
+        Add credit line
+      </button>
     </div>
   )
 }
